@@ -1,4 +1,4 @@
-name: Base_FastAPI_SQLAlchemy_PostgreSQL
+name: cafe_booking
 
 services:
   app:

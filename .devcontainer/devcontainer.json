@@ -35,7 +35,7 @@
     }
   },
   "remoteEnv": {
-    "PROJECT_NAME": "FastAPI & SQLAlchemy & Postgres",
+    "PROJECT_NAME": "cafe_booking",
     "PYTHON_VERSION": "3.12",
     "UV_INIT_BARE": "false"
   },
