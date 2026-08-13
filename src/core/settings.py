@@ -9,9 +9,9 @@ class Settings(BaseSettings):
     """Настройки приложения."""
 
     # Общие настройки
-    title: str = 'Базовый набор FastAPI+SQLAlchemy+Postgres'
+    title: str = 'Проект «Бронирование мест в кафе»'
     version: str = '0.0.1'
-    description: str = 'Основа для приложения'
+    description: str = 'Проект «Бронирование мест в кафе»'
 
     # Настройки подключения к БД
     postgres_user: str
