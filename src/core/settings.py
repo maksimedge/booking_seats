@@ -20,6 +20,11 @@ class Settings(BaseSettings):
     postgres_server: str = 'localhost'
     postgres_port: int = 5432
 
+    # Аутентификация
+    secret_key: str
+    algorithm: str
+    access_token_expire_minutes: int
+
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / '../infra/.env',
         env_file_encoding='utf-8',

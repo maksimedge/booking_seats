@@ -1,5 +1,8 @@
+from users.models import User
+
 from core.base_model import Base
 
 __all__ = [
-    Base,
+    'Base',
+    'User',
 ]
