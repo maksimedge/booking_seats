@@ -21,9 +21,9 @@ class Settings(BaseSettings):
     postgres_port: int = 5432
 
     # Аутентификация
-    secret_key: str
-    algorithm: str
-    access_token_expire_minutes: int
+    secret_key: str = 'secret'
+    algorithm: str = 'HS256'
+    access_token_expire_minutes: int = 30
 
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / '../infra/.env',
