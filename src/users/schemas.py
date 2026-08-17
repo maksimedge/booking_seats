@@ -1,23 +1,25 @@
 from datetime import datetime
-from enum import Enum
 from typing import Optional, Self
 
 from pydantic import BaseModel, EmailStr, Field, model_validator
 
-
-class UserRole(str, Enum):
-    """Роли пользователей."""
-
-    ADMIN = 'ADMIN'
-    MANAGER = 'MANAGER'
-    USER = 'USER'
+from users.constants import (
+    PASSWORD_MIN_LENGTH,
+    USERNAME_MAX_LENGTH,
+    USERNAME_MIN_LENGTH,
+    UserRole,
+)
 
 
 class UserCreate(BaseModel):
     """Схема создания пользователя."""
 
-    username: str = Field(..., min_length=3, max_length=100)
-    password: str = Field(..., min_length=6)
+    username: str = Field(
+        ...,
+        min_length=USERNAME_MIN_LENGTH,
+        max_length=USERNAME_MAX_LENGTH,
+    )
+    password: str = Field(..., min_length=PASSWORD_MIN_LENGTH)
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
     tg_id: Optional[str] = None
@@ -33,12 +35,16 @@ class UserCreate(BaseModel):
 class UserUpdate(BaseModel):
     """Схема обновления пользователя."""
 
-    username: Optional[str] = Field(None, min_length=3, max_length=100)
+    username: Optional[str] = Field(
+        None,
+        min_length=USERNAME_MIN_LENGTH,
+        max_length=USERNAME_MAX_LENGTH,
+    )
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
     tg_id: Optional[str] = None
     role: Optional[UserRole] = None
-    password: Optional[str] = Field(None, min_length=6)
+    password: Optional[str] = Field(None, min_length=PASSWORD_MIN_LENGTH)
     is_active: Optional[bool] = None
 
 

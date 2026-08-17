@@ -1,8 +1,8 @@
-"""Add user model
+"""Add user model with constraints and enum
 
-Revision ID: 60b1b48a6787
+Revision ID: 1968c053bbed
 Revises:
-Create Date: 2026-08-13 17:43:17.515155
+Create Date: 2026-08-17 15:53:18.189178
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '60b1b48a6787'
+revision: str = '1968c053bbed'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -28,10 +28,11 @@ def upgrade() -> None:
     sa.Column('email', sa.String(length=255), nullable=True),
     sa.Column('phone', sa.String(length=20), nullable=True),
     sa.Column('tg_id', sa.String(length=100), nullable=True),
-    sa.Column('role', sa.String(length=20), server_default='USER', nullable=False),
+    sa.Column('role', sa.Enum('ADMIN', 'MANAGER', 'USER', name='userrole'), server_default='USER', nullable=False),
     sa.Column('is_active', sa.BOOLEAN(), server_default='true', nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.CheckConstraint('email IS NOT NULL OR phone IS NOT NULL', name='check_email_or_phone'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email'),
     sa.UniqueConstraint('phone'),

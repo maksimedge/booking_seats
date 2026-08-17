@@ -1,6 +1,7 @@
+from http import HTTPStatus
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from users.crud import get_user_by_login
@@ -21,8 +22,8 @@ async def login(
     user = await get_user_by_login(db, auth_data.login)
     if user is None or not verify_password(auth_data.password, user.password_hash):
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             detail='Неверные имя пользователя или пароль',
         )
-    token = create_access_token(data={'sub': str(user.id), 'role': user.role})
+    token = create_access_token(data={'sub': str(user.id), 'role': user.role.value})
     return AuthToken(access_token=token)
