@@ -9,4 +9,19 @@ wheels/
 # Virtual environments
 .venv
 .env
+
+# Logs
+logs/
+*.log
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+.env
 venv/
