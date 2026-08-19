@@ -20,6 +20,11 @@ class Settings(BaseSettings):
     postgres_server: str = 'localhost'
     postgres_port: int = 5432
 
+    # Аутентификация
+    secret_key: str = 'secret'
+    algorithm: str = 'HS256'
+    access_token_expire_minutes: int = 30
+
     # Настройки логирования
     log_level: str = 'INFO'
     log_dir: str = 'logs'
