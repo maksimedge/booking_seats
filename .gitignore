@@ -17,3 +17,6 @@ logs/
 
 # Migrations (local)
 src/migrations/
+
+#Images
+/images/
