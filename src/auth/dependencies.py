@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Annotated, Optional
+from typing import Annotated, Any, Callable, Optional
 
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -36,31 +36,29 @@ async def get_optional_current_user(
 
 async def get_current_user(
     user: User | None = Depends(get_optional_current_user),
-) -> User:
-    """Возвращает текущего пользователя, если он аутентифицирован и активен."""
-    if user is None or not user.is_active:
-        raise HTTPException(
-            status_code=HTTPStatus.UNAUTHORIZED,
-            detail='Неверный или истёкший токен',
-        )
+) -> User | None:
+    """Низкоуровневая зависимость: возвращает пользователя или None без проверки прав."""
     return user
 
 
-async def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
-    """Возвращает пользователя, если он администратор."""
-    if current_user.role != UserRole.ADMIN:
-        raise HTTPException(
-            status_code=HTTPStatus.FORBIDDEN,
-            detail='Доступ только для администраторов',
-        )
-    return current_user
+def role_required(*allowed_roles: UserRole) -> Callable[..., Any]:
+    """Фабрика зависимостей, проверяющая аутентификацию и роль пользователя."""
+
+    async def check_role(user: User | None = Depends(get_current_user)) -> User:
+        if user is None or not user.is_active:
+            raise HTTPException(
+                status_code=HTTPStatus.UNAUTHORIZED,
+                detail='Неверный или истёкший токен',
+            )
+        if user.role not in allowed_roles:
+            raise HTTPException(
+                status_code=HTTPStatus.FORBIDDEN,
+                detail='Недостаточно прав',
+            )
+        return user
+
+    return check_role
 
 
-async def get_current_manager_or_admin(current_user: User = Depends(get_current_user)) -> User:
-    """Возвращает пользователя, если он администратор или менеджер."""
-    if current_user.role not in (UserRole.ADMIN, UserRole.MANAGER):
-        raise HTTPException(
-            status_code=HTTPStatus.FORBIDDEN,
-            detail='Доступ только для администраторов или менеджеров',
-        )
-    return current_user
+get_current_admin = role_required(UserRole.ADMIN)
+get_current_manager_or_admin = role_required(UserRole.ADMIN, UserRole.MANAGER)
