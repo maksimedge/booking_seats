@@ -26,3 +26,9 @@ wheels/
 .venv
 .env
 venv/
+
+# Migrations (local)
+src/migrations/
+
+#Images
+/images/
