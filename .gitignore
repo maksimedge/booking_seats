@@ -9,4 +9,11 @@ wheels/
 # Virtual environments
 .venv
 .env
+venv/
+
+# Logs
+logs/
+*.log
+
+# Migrations (local)
 src/migrations/
