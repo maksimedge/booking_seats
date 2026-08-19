@@ -17,6 +17,8 @@ logs/
 
 # Migrations (local)
 src/migrations/
+alembic/
+alembic.ini
 
 #Images
 /images/
