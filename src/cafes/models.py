@@ -41,6 +41,8 @@ cafe_managers = Table(
 
 
 class Cafe(Base):
+    """Модель кафе."""
+
     __tablename__ = 'cafes'
 
     id: Mapped[UUID] = mapped_column(
