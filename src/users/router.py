@@ -6,8 +6,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.dependencies import (
+    get_current_active_user,
     get_current_manager_or_admin,
-    get_current_user,
     get_optional_current_user,
 )
 from users.constants import UserRole
@@ -57,7 +57,7 @@ async def list_users(
 
 
 @router.get('/me', response_model=UserInfo)
-async def get_me(current_user: User = Depends(get_current_user)) -> UserInfo:
+async def get_me(current_user: User = Depends(get_current_active_user)) -> UserInfo:
     """Возвращает информацию о текущем пользователе."""
     return current_user
 
@@ -66,7 +66,7 @@ async def get_me(current_user: User = Depends(get_current_user)) -> UserInfo:
 async def update_me(
     user_update: UserUpdate,
     db: Annotated[AsyncSession, Depends(get_session)],
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
 ) -> UserInfo:
     """Обновляет данные текущего пользователя."""
     if user_update.role is not None and user_update.role != current_user.role:
@@ -86,7 +86,7 @@ async def update_me(
 async def get_user(
     user_id: int,
     db: Annotated[AsyncSession, Depends(get_session)],
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
 ) -> UserInfo:
     """Возвращает пользователя по ID. Обычный пользователь видит только себя."""
     user = await get_user_by_id(db, user_id)
@@ -108,7 +108,7 @@ async def update_user_by_id(
     user_id: int,
     user_update: UserUpdate,
     db: Annotated[AsyncSession, Depends(get_session)],
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
 ) -> UserInfo:
     """Обновляет пользователя по ID. Обычный пользователь обновляет только себя."""
     user = await get_user_by_id(db, user_id)

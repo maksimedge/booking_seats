@@ -41,15 +41,22 @@ async def get_current_user(
     return user
 
 
+async def get_current_active_user(
+    user: User | None = Depends(get_current_user),
+) -> User:
+    """Возвращает текущего пользователя, если он аутентифицирован и активен."""
+    if user is None or not user.is_active:
+        raise HTTPException(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            detail='Неверный или истёкший токен',
+        )
+    return user
+
+
 def role_required(*allowed_roles: UserRole) -> Callable[..., Any]:
     """Фабрика зависимостей, проверяющая аутентификацию и роль пользователя."""
 
-    async def check_role(user: User | None = Depends(get_current_user)) -> User:
-        if user is None or not user.is_active:
-            raise HTTPException(
-                status_code=HTTPStatus.UNAUTHORIZED,
-                detail='Неверный или истёкший токен',
-            )
+    async def check_role(user: User = Depends(get_current_active_user)) -> User:
         if user.role not in allowed_roles:
             raise HTTPException(
                 status_code=HTTPStatus.FORBIDDEN,
