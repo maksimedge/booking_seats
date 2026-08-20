@@ -1,10 +1,18 @@
 from fastapi import APIRouter
 
-from api import media_router
+from api import auth_router, media_router, users_router
 
 main_router = APIRouter(prefix='/api/v1')
 
 main_router.include_router(
     media_router,
     tags=['Media'],
+)
+main_router.include_router(
+    auth_router,
+    tags=['Users'],
+)
+main_router.include_router(
+    users_router,
+    tags=['Auth'],
 )

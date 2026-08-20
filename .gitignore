@@ -10,22 +10,11 @@ wheels/
 # Virtual environments
 .venv
 .env
+venv/
 
 # Logs
 logs/
 *.log
-# Python-generated files
-__pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
-
-# Virtual environments
-.venv
-.env
-venv/
 
 # Migrations (local)
 src/migrations/

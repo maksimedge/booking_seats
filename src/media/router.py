@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, File, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from auth.dependencies import get_current_manager_or_admin
 from media.schemas import MediaInfo
 from media.service import get_file_path_by_id, upload_media
 
@@ -23,7 +24,7 @@ SessionDep = Annotated[AsyncSession, Depends(get_session)]
         'Только для администраторов и менеджеров'
     ),
     summary='Загрузка изображения',
-    # dependencies=[Depends(current_superuser)]
+    dependencies=[Depends(get_current_manager_or_admin)],
 )
 async def upload_file(file: Annotated[UploadFile, File()], session: SessionDep) -> MediaInfo:
     """Апи для загрузки файла."""
@@ -35,6 +36,7 @@ async def upload_file(file: Annotated[UploadFile, File()], session: SessionDep) 
     '/media/{media_id}',
     summary='Возвращает изображение в бинарном формате.',
     description='Возвращает изображение по айди.',
+    dependencies=[Depends(get_current_manager_or_admin)],
 )
 async def get_image_by_id(media_id: uuid.UUID, session: SessionDep) -> FileResponse:
     """Ендпойнт для возврата файла по айди."""
