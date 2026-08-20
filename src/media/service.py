@@ -16,7 +16,7 @@ from media.constants import (
     MAX_FILE_SIZE,
     MAX_FILE_SIZE_FOR_MESSAGE,
 )
-from media.crud import create_media
+from media.crud import create_media, get_media_by_id
 
 
 async def upload_media(file: UploadFile, session: AsyncSession) -> uuid.UUID:
@@ -46,9 +46,28 @@ async def upload_media(file: UploadFile, session: AsyncSession) -> uuid.UUID:
         delete_file(file_path)
         raise
 
-    # надо сделать так, чтобы в случае, если в базе не сохранилась запись, файл удалялся бы тоже
-
     return media_file.id
+
+
+async def get_file_path_by_id(media_id: uuid.UUID, session: AsyncSession) -> Path:
+    """Возврат пути файла по айди."""
+    media_file = await get_media_by_id(media_id=media_id, session=session)
+
+    if media_file is None:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='Изображение не найдено.',
+        )
+
+    absolute_path = BASE_DIR / media_file.path
+
+    if not absolute_path.is_file():
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='Файл не найден.',
+        )
+
+    return absolute_path
 
 
 def validate_and_convert_media(content: bytes) -> bytes:
