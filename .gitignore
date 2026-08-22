@@ -23,3 +23,7 @@ alembic.ini
 
 #Images
 /images/
+
+# migrations and alembic configuration
+src/migrations/
+src/alembic.ini
