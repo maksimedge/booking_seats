@@ -2,12 +2,12 @@ import enum
 from datetime import date
 from typing import Optional
 
+from cafes.models import Cafe
 from slots.models import TimeSlot
 from sqlalchemy import Date, Enum, ForeignKey, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from tables.models import Table
 
-from cafes.models import Cafe
 from users.models import User
 
 from core.db import Base
