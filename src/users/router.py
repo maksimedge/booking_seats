@@ -26,25 +26,42 @@ async def register_user(
     db: Annotated[AsyncSession, Depends(get_session)],
     current_user: User | None = Depends(get_optional_current_user),
 ) -> UserInfo:
-    """Регистрирует нового пользователя. Неавторизованные, администраторы и менеджеры."""
-    if current_user is not None and current_user.role == UserRole.USER:
-        raise HTTPException(
-            status_code=HTTPStatus.FORBIDDEN,
-            detail='Обычный пользователь не может создавать новых пользователей',
-        )
-    conditions = [User.username == user_create.username]
-    if user_create.email is not None:
-        conditions.append(User.email == user_create.email)
-    if user_create.phone is not None:
-        conditions.append(User.phone == user_create.phone)
+    """Регистрирует нового пользователя."""
+    try:
+        if current_user is not None and current_user.role == UserRole.USER:
+            raise HTTPException(
+                status_code=HTTPStatus.FORBIDDEN,
+                detail='Обычный пользователь не может создавать новых пользователей',
+            )
 
-    result = await db.execute(select(User).where(*conditions))
-    if result.scalars().first() is not None:
+        conditions = [User.username == user_create.username]
+        if user_create.email is not None:
+            conditions.append(User.email == user_create.email)
+        if user_create.phone is not None:
+            conditions.append(User.phone == user_create.phone)
+
+        result = await db.execute(select(User).where(*conditions))
+        if result.scalars().first() is not None:
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST,
+                detail='Пользователь с такими данными уже существует',
+            )
+
+        return await create_user(db, user_create)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+
+        print('=' * 80)
+        print('🔥 ОШИБКА ПРИ СОЗДАНИИ ПОЛЬЗОВАТЕЛЯ:')
+        traceback.print_exc()
+        print('=' * 80)
         raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST,
-            detail='Пользователь с такими данными уже существует',
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            detail=f'Внутренняя ошибка сервера: {str(e)}',
         )
-    return await create_user(db, user_create)
 
 
 @router.get('/', response_model=list[UserInfo])
@@ -57,7 +74,9 @@ async def list_users(
 
 
 @router.get('/me', response_model=UserInfo)
-async def get_me(current_user: User = Depends(get_current_user)) -> UserInfo:
+async def get_me(
+    current_user: User = Depends(get_current_user),
+) -> UserInfo:
     """Возвращает информацию о текущем пользователе."""
     return current_user
 
@@ -74,11 +93,13 @@ async def update_me(
             status_code=HTTPStatus.FORBIDDEN,
             detail='Нельзя изменить роль самому себе',
         )
+
     if user_update.is_active is not None and user_update.is_active != current_user.is_active:
         raise HTTPException(
             status_code=HTTPStatus.FORBIDDEN,
             detail='Нельзя изменить собственную активность',
         )
+
     return await update_user(db, current_user, user_update)
 
 
@@ -95,11 +116,13 @@ async def get_user(
             status_code=HTTPStatus.NOT_FOUND,
             detail='Пользователь не найден',
         )
+
     if current_user.role == UserRole.USER and user.id != current_user.id:
         raise HTTPException(
             status_code=HTTPStatus.FORBIDDEN,
             detail='Доступ только к своей записи',
         )
+
     return user
 
 
@@ -117,9 +140,11 @@ async def update_user_by_id(
             status_code=HTTPStatus.NOT_FOUND,
             detail='Пользователь не найден',
         )
+
     if current_user.role == UserRole.USER and user.id != current_user.id:
         raise HTTPException(
             status_code=HTTPStatus.FORBIDDEN,
             detail='Доступ только к своей записи',
         )
+
     return await update_user(db, user, user_update)
