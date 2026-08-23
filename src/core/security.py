@@ -30,5 +30,5 @@ def decode_access_token(token: str) -> dict | None:
     """Декодирует JWT-токен и возвращает payload или None."""
     try:
         return jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
-    except JWTError:
+    except (JWTError, ValueError, TypeError):
         return None

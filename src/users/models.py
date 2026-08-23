@@ -1,4 +1,4 @@
-from sqlalchemy import CheckConstraint, Enum, Integer, String
+from sqlalchemy import CheckConstraint, Enum, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from users.constants import (
@@ -24,7 +24,6 @@ class User(Base):
         ),
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     username: Mapped[str] = mapped_column(
         String(USERNAME_MAX_LENGTH),
         unique=True,

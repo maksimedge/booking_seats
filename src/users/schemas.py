@@ -1,7 +1,8 @@
+import re
 from datetime import datetime
 from typing import Optional, Self
 
-from pydantic import BaseModel, EmailStr, Field, model_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 from users.constants import (
     PASSWORD_MIN_LENGTH,
@@ -23,6 +24,17 @@ class UserCreate(BaseModel):
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
     tg_id: Optional[str] = None
+
+    @field_validator('phone')
+    @classmethod
+    def validate_phone(cls, value: Optional[str]) -> Optional[str]:
+        """Проверяет формат телефона."""
+        if value is None:
+            return value
+        digits = re.sub(r'[^0-9]', '', value)
+        if len(digits) < 7:
+            raise ValueError('Телефон должен содержать не менее 7 цифр')
+        return value
 
     @model_validator(mode='after')
     def check_email_or_phone(self) -> Self:
@@ -46,6 +58,17 @@ class UserUpdate(BaseModel):
     role: Optional[UserRole] = None
     password: Optional[str] = Field(None, min_length=PASSWORD_MIN_LENGTH)
     is_active: Optional[bool] = None
+
+    @field_validator('phone')
+    @classmethod
+    def validate_phone(cls, value: Optional[str]) -> Optional[str]:
+        """Проверяет формат телефона."""
+        if value is None:
+            return value
+        digits = re.sub(r'[^0-9]', '', value)
+        if len(digits) < 7:
+            raise ValueError('Телефон должен содержать не менее 7 цифр')
+        return value
 
 
 class UserShortInfo(BaseModel):
