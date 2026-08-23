@@ -45,7 +45,7 @@ async def get_optional_current_user(
 
 
 def role_required(*allowed_roles: UserRole, allow_anon: bool = False) -> Callable[..., Any]:
-    """Фабрика зависимостей для проверки аутентификации и роли."""
+    """ЗависимостИ для проверки аутентификации и роли."""
 
     async def check_role(user: User | None = Depends(get_optional_current_user)) -> User | None:
         if allow_anon and user is None:
