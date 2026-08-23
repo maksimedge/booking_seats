@@ -1,43 +1,90 @@
 from datetime import date, datetime
-from typing import Optional
+from typing import List, Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from bookings.constants import MAX_NOTE_LENGTH, MIN_GUEST_NUMBER
 from bookings.models import BookingStatus
 
 
+class TableSlot(BaseModel):
+    """Пара (стол + слот) для бронирования."""
+
+    table_id: int = Field(..., description='ID стола')
+    slot_id: int = Field(..., description='ID временного слота')
+
+
+class UserShortInfo(BaseModel):
+    """Краткая информация о пользователе."""
+
+    id: int = Field(..., description='ID пользователя')
+    username: str = Field(..., description='Имя пользователя')
+    email: Optional[str] = Field(None, description='Email')
+    phone: Optional[str] = Field(None, description='Телефон')
+
+
+class CafeShortInfo(BaseModel):
+    """Краткая информация о кафе."""
+
+    id: int = Field(..., description='ID кафе')
+    name: str = Field(..., description='Название кафе')
+    address: str = Field(..., description='Адрес')
+    phone: str = Field(..., description='Телефон')
+
+
+class TableShortInfo(BaseModel):
+    """Краткая информация о столе."""
+
+    id: int = Field(..., description='ID стола')
+    seat_number: int = Field(..., description='Количество мест')
+    description: Optional[str] = Field(None, description='Описание стола')
+
+
+class TimeSlotShortInfo(BaseModel):
+    """Краткая информация о временном слоте."""
+
+    id: int = Field(..., description='ID слота')
+    start_time: str = Field(..., description='Время начала (HH:MM)')
+    end_time: str = Field(..., description='Время окончания (HH:MM)')
+
+
+class TableSlotInfo(BaseModel):
+    """Пара (стол + слот) с полной информацией."""
+
+    table: TableShortInfo = Field(..., description='Информация о столе')
+    slot: TimeSlotShortInfo = Field(..., description='Информация о слоте')
+
+
 def validate_future_date(v: date) -> date:
-    """Проверяет, что дата не в прошлом.
-
-    Args:
-        v: Дата для проверки
-
-    Returns:
-        date: Проверенная дата
-
-    Raises:
-        ValueError: Если дата в прошлом
-
-    """
+    """Проверяет, что дата не в прошлом."""
     if v < date.today():
         raise ValueError('Нельзя бронировать на прошедшую дату')
     return v
 
 
-class BookingCreate(BaseModel):
-    """Схема для создания нового бронирования.
+def validate_tables_slots_list(v: List[TableSlot]) -> List[TableSlot]:
+    """Проверяет, что список пар (стол + слот) не пустой."""
+    if not v:
+        raise ValueError('Должен быть указан хотя бы один стол')
+    return v
 
-    Используется при POST-запросе на /api/v1/booking.
-    Все поля обязательны, кроме note.
-    """
+
+class BookingCreate(BaseModel):
+    """Схема для создания нового бронирования."""
 
     cafe_id: int = Field(..., description='ID кафе')
-    table_id: int = Field(..., description='ID стола')
-    slot_id: int = Field(..., description='ID временного слота')
     booking_date: date = Field(..., description='Дата бронирования (YYYY-MM-DD)')
-    guest_number: int = Field(..., ge=MIN_GUEST_NUMBER, description='Количество гостей (минимум 1)')
-    note: Optional[str] = Field(None, max_length=MAX_NOTE_LENGTH, description='Заметка к бронированию')
+    guest_number: int = Field(
+        ...,
+        ge=MIN_GUEST_NUMBER,
+        description=f'Количество гостей (минимум {MIN_GUEST_NUMBER})',
+    )
+    note: Optional[str] = Field(
+        None,
+        max_length=MAX_NOTE_LENGTH,
+        description=f'Заметка к бронированию (максимум {MAX_NOTE_LENGTH} символов)',
+    )
+    tables_slots: List[TableSlot] = Field(..., min_length=1, description='Список пар (стол + слот)')
 
     @field_validator('booking_date')
     @classmethod
@@ -45,41 +92,55 @@ class BookingCreate(BaseModel):
         """Проверяет, что дата бронирования не в прошлом."""
         return validate_future_date(v)
 
+    @field_validator('tables_slots')
+    @classmethod
+    def validate_tables_slots(cls, v: List[TableSlot]) -> List[TableSlot]:
+        """Проверяет, что список пар (стол + слот) не пустой."""
+        return validate_tables_slots_list(v)
+
 
 class BookingUpdate(BaseModel):
-    """Схема для обновления бронирования.
+    """Схема для обновления бронирования."""
 
-    Используется при PATCH-запросе на /api/v1/booking/{id}.
-    Все поля опциональны — обновляются только переданные.
-    """
-
-    table_id: Optional[int] = Field(None, description='ID стола')
-    slot_id: Optional[int] = Field(None, description='ID временного слота')
     booking_date: Optional[date] = Field(None, description='Дата бронирования (YYYY-MM-DD)')
-    guest_number: Optional[int] = Field(None, ge=MIN_GUEST_NUMBER, description='Количество гостей')
-    note: Optional[str] = Field(None, max_length=MAX_NOTE_LENGTH, description='Заметка')
+    guest_number: Optional[int] = Field(
+        None,
+        ge=MIN_GUEST_NUMBER,
+        description=f'Количество гостей (минимум {MIN_GUEST_NUMBER})',
+    )
+    note: Optional[str] = Field(
+        None,
+        max_length=MAX_NOTE_LENGTH,
+        description=f'Заметка (максимум {MAX_NOTE_LENGTH} символов)',
+    )
     status: Optional[BookingStatus] = Field(None, description='Статус бронирования')
+    tables_slots: Optional[List[TableSlot]] = Field(
+        None,
+        min_length=1,
+        description='Список пар (стол + слот)',
+    )
 
     @field_validator('booking_date')
     @classmethod
     def validate_booking_date(cls, v: Optional[date]) -> Optional[date]:
-        """Проверяет, что дата бронирования не в прошлом.
-
-        Если дата не передана (None) — пропускаем валидацию.
-        """
+        """Проверяет, что дата бронирования не в прошлом (если она передана)."""
         if v is not None:
             return validate_future_date(v)
         return v
+
+    @field_validator('tables_slots')
+    @classmethod
+    def validate_tables_slots(cls, v: Optional[List[TableSlot]]) -> Optional[List[TableSlot]]:
+        """Проверяет, что список пар (стол + слот) не пустой."""
+        return validate_tables_slots_list(v)
 
 
 class BookingInfo(BaseModel):
     """Схема для получения информации о бронировании."""
 
     id: int = Field(..., description='ID бронирования')
-    user_id: int = Field(..., description='ID пользователя')
-    cafe_id: int = Field(..., description='ID кафе')
-    table_id: int = Field(..., description='ID стола')
-    slot_id: int = Field(..., description='ID временного слота')
+    user: UserShortInfo = Field(..., description='Пользователь')
+    cafe: CafeShortInfo = Field(..., description='Кафе')
     booking_date: date = Field(..., description='Дата бронирования')
     guest_number: int = Field(..., description='Количество гостей')
     note: Optional[str] = Field(None, description='Заметка')
@@ -87,8 +148,9 @@ class BookingInfo(BaseModel):
     is_active: bool = Field(..., description='Активно ли бронирование')
     created_at: datetime = Field(..., description='Дата и время создания')
     updated_at: datetime = Field(..., description='Дата и время обновления')
+    tables_slots: List[TableSlotInfo] = Field(
+        ...,
+        description='Список пар (стол + слот) с полной информацией',
+    )
 
-    class Config:
-        """Настройки Pydantic для работы с SQLAlchemy."""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
