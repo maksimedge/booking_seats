@@ -30,22 +30,10 @@ from typing import Any
 
 from loguru import logger as _logger
 
+from core.constants import LOG_FORMAT_CONSOLE, LOG_FORMAT_FILE, SYSTEM_USER
 from core.settings import BASE_DIR, settings
 
-SYSTEM_USER = 'SYSTEM'
-
 _user_ctx: ContextVar[dict[str, Any] | None] = ContextVar('log_user_ctx', default=None)
-
-_LOG_FORMAT_CONSOLE = (
-    '<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | '
-    '<level>{level: <8}</level> | '
-    'user=<cyan>{extra[username]}</cyan> (id=<cyan>{extra[user_id]}</cyan>) | '
-    '<level>{message}</level>'
-)
-
-_LOG_FORMAT_FILE = (
-    '{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | user={extra[username]} (id={extra[user_id]}) | {message}'
-)
 
 
 def set_log_context(user_id: Any = None, username: str | None = None) -> None:
@@ -93,7 +81,7 @@ def setup_logging() -> None:
         _logger.add(
             sys.stdout,
             level=settings.log_level,
-            format=_LOG_FORMAT_CONSOLE,
+            format=LOG_FORMAT_CONSOLE,
             colorize=True,
             backtrace=False,
             diagnose=False,
@@ -106,7 +94,7 @@ def setup_logging() -> None:
     _logger.add(
         log_file_path,
         level=settings.log_level,
-        format=_LOG_FORMAT_FILE,
+        format=LOG_FORMAT_FILE,
         rotation=settings.log_rotation,
         retention=settings.log_retention,
         encoding='utf-8',
