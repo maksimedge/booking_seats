@@ -1,3 +1,4 @@
+from cafes.models import Cafe
 from media.models import Image
 from users.models import User
 
@@ -7,4 +8,5 @@ __all__ = [
     'Base',
     'Image',
     'User',
+    'Cafe',
 ]
