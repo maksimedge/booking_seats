@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -25,7 +26,7 @@ class TableUpdate(BaseModel):
 class TableResponse(BaseModel):
     """Схема для ответа с данными стола."""
 
-    id: int
+    id: UUID
     cafe_id: int
     seats_count: int
     description: Optional[str]

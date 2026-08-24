@@ -20,6 +20,19 @@ class Settings(BaseSettings):
     postgres_server: str = 'localhost'
     postgres_port: int = 5432
 
+    # Аутентификация
+    secret_key: str = 'secret'
+    algorithm: str = 'HS256'
+    access_token_expire_minutes: int = 30
+
+    # Настройки логирования
+    log_level: str = 'INFO'
+    log_dir: str = 'logs'
+    log_file_name: str = 'app.log'
+    log_rotation: str = '10 MB'
+    log_retention: int = 5
+    log_to_console: bool = True
+
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / '../infra/.env',
         env_file_encoding='utf-8',
