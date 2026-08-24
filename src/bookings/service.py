@@ -1,10 +1,36 @@
 from datetime import date
 
 from fastapi import HTTPException, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from bookings.models import Booking, BookingStatus
+from bookings.models import Booking, BookingStatus, BookingTableSlot
 from bookings.schemas import BookingCreate, BookingUpdate
+
+
+async def _get_booking_with_relations(
+    session: AsyncSession,
+    booking_id: int,
+) -> Booking:
+    """Получает бронирование со всеми связями для ответа API."""
+    query = (
+        select(Booking)
+        .where(Booking.id == booking_id)
+        .options(
+            selectinload(Booking.user),
+            selectinload(Booking.cafe),
+            selectinload(Booking.tables_slots).selectinload(
+                BookingTableSlot.table,
+            ),
+            selectinload(Booking.tables_slots).selectinload(
+                BookingTableSlot.slot,
+            ),
+        )
+    )
+
+    result = await session.execute(query)
+    return result.scalar_one()
 
 
 async def create_booking(
@@ -15,13 +41,31 @@ async def create_booking(
     """Создаёт новое бронирование."""
     booking = Booking(
         user_id=user_id,
-        **booking_data.model_dump(),
+        cafe_id=booking_data.cafe_id,
+        booking_date=booking_data.booking_date,
+        guest_number=booking_data.guest_number,
+        note=booking_data.note,
         status=BookingStatus.BOOKING,
     )
+
     session.add(booking)
+    await session.flush()
+
+    for table_slot in booking_data.tables_slots:
+        session.add(
+            BookingTableSlot(
+                booking_id=booking.id,
+                table_id=table_slot.table_id,
+                slot_id=table_slot.slot_id,
+            ),
+        )
+
     await session.commit()
-    await session.refresh(booking)
-    return booking
+
+    return await _get_booking_with_relations(
+        session,
+        booking.id,
+    )
 
 
 async def update_booking(
@@ -29,33 +73,58 @@ async def update_booking(
     booking: Booking,
     booking_data: BookingUpdate,
 ) -> Booking:
-    """Обновляет бронирование (только разрешённые поля)."""
+    """Изменяет бронирование."""
     if booking.booking_date < date.today():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Нельзя изменять прошедшее бронирование',
         )
+
     if booking.status != BookingStatus.BOOKING:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Изменить можно только бронирование со статусом BOOKING',
         )
 
-    for field, value in booking_data.model_dump(exclude_unset=True).items():
+    update_data = booking_data.model_dump(exclude_unset=True)
+
+    tables_slots = update_data.pop('tables_slots', None)
+
+    if tables_slots is not None:
+        for table_slot in booking.tables_slots:
+            await session.delete(table_slot)
+
+        for table_slot in tables_slots:
+            session.add(
+                BookingTableSlot(
+                    booking_id=booking.id,
+                    table_id=table_slot['table_id'],
+                    slot_id=table_slot['slot_id'],
+                ),
+            )
+
+    for field, value in update_data.items():
         setattr(booking, field, value)
 
     await session.commit()
-    await session.refresh(booking)
-    return booking
+
+    return await _get_booking_with_relations(
+        session,
+        booking.id,
+    )
 
 
-async def cancel_booking(session: AsyncSession, booking: Booking) -> Booking:
+async def cancel_booking(
+    session: AsyncSession,
+    booking: Booking,
+) -> Booking:
     """Отменяет бронирование."""
     if booking.booking_date < date.today():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Нельзя отменить прошедшее бронирование',
         )
+
     if booking.status != BookingStatus.BOOKING:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -63,6 +132,10 @@ async def cancel_booking(session: AsyncSession, booking: Booking) -> Booking:
         )
 
     booking.status = BookingStatus.CANCELED
+
     await session.commit()
-    await session.refresh(booking)
-    return booking
+
+    return await _get_booking_with_relations(
+        session,
+        booking.id,
+    )
