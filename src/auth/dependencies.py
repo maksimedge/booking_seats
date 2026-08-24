@@ -10,6 +10,7 @@ from users.crud import get_user_by_id
 from users.models import User
 
 from core.db import get_session
+from core.logger import set_log_context
 from core.security import decode_access_token
 
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -38,6 +39,7 @@ async def get_current_user(
     user: User | None = Depends(get_optional_current_user),
 ) -> User | None:
     """Низкоуровневая зависимость: возвращает пользователя или None без проверки прав."""
+    set_log_context(user_id=user.id, username=user.username)
     return user
 
 
