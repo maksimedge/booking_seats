@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     postgres_server: str = 'localhost'
     postgres_port: int = 5432
 
+    # Настройка локации папки медиа
+    images_dir: Path = Path('images')
+
     # Аутентификация
     secret_key: str = 'secret'
     algorithm: str = 'HS256'

@@ -65,10 +65,7 @@ async def validate_no_overlap(
         if result.scalars().first() is not None:
             raise HTTPException(
                 status.HTTP_409_CONFLICT,
-                detail=(
-                    f'Стол {item.table_id} уже забронирован '
-                    f'на слот {item.slot_id} в выбранную дату'
-                ),
+                detail=(f'Стол {item.table_id} уже забронирован на слот {item.slot_id} в выбранную дату'),
             )
 
 
