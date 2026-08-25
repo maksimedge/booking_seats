@@ -7,6 +7,12 @@ from sqlalchemy.orm import selectinload
 
 from bookings.models import Booking, BookingStatus, BookingTableSlot
 from bookings.schemas import BookingCreate, BookingUpdate
+from bookings.validators import (
+    validate_booking_is_updatable,
+    validate_cafe_exists,
+    validate_no_overlap,
+    validate_tables_and_slots,
+)
 
 
 async def _get_booking_with_relations(
@@ -39,6 +45,23 @@ async def create_booking(
     user_id: int,
 ) -> Booking:
     """Создаёт новое бронирование."""
+    await validate_cafe_exists(
+        session=session,
+        cafe_id=booking_data.cafe_id,
+    )
+
+    await validate_tables_and_slots(
+        session=session,
+        cafe_id=booking_data.cafe_id,
+        tables_slots=booking_data.tables_slots,
+    )
+
+    await validate_no_overlap(
+        session=session,
+        booking_date=booking_data.booking_date,
+        tables_slots=booking_data.tables_slots,
+    )
+
     booking = Booking(
         user_id=user_id,
         cafe_id=booking_data.cafe_id,
