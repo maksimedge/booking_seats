@@ -1,4 +1,9 @@
+from datetime import date
+
+from fastapi import HTTPException, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from bookings.models import Booking, BookingStatus, BookingTableSlot
 from bookings.schemas import BookingCreate, BookingUpdate
@@ -8,6 +13,30 @@ from bookings.validators import (
     validate_no_overlap,
     validate_tables_and_slots,
 )
+
+
+async def _get_booking_with_relations(
+    session: AsyncSession,
+    booking_id: int,
+) -> Booking:
+    """Получает бронирование со всеми связями для ответа API."""
+    query = (
+        select(Booking)
+        .where(Booking.id == booking_id)
+        .options(
+            selectinload(Booking.user),
+            selectinload(Booking.cafe),
+            selectinload(Booking.tables_slots).selectinload(
+                BookingTableSlot.table,
+            ),
+            selectinload(Booking.tables_slots).selectinload(
+                BookingTableSlot.slot,
+            ),
+        )
+    )
+
+    result = await session.execute(query)
+    return result.scalar_one()
 
 
 async def create_booking(
@@ -37,24 +66,29 @@ async def create_booking(
         user_id=user_id,
         cafe_id=booking_data.cafe_id,
         booking_date=booking_data.booking_date,
+        guest_number=booking_data.guest_number,
+        note=booking_data.note,
         status=BookingStatus.BOOKING,
     )
 
     session.add(booking)
     await session.flush()
 
-    for item in booking_data.tables_slots:
-        booking_table_slot = BookingTableSlot(
-            booking_id=booking.id,
-            table_id=item.table_id,
-            slot_id=item.slot_id,
+    for table_slot in booking_data.tables_slots:
+        session.add(
+            BookingTableSlot(
+                booking_id=booking.id,
+                table_id=table_slot.table_id,
+                slot_id=table_slot.slot_id,
+            ),
         )
-        session.add(booking_table_slot)
 
     await session.commit()
-    await session.refresh(booking)
 
-    return booking
+    return await _get_booking_with_relations(
+        session,
+        booking.id,
+    )
 
 
 async def update_booking(
@@ -62,61 +96,45 @@ async def update_booking(
     booking: Booking,
     booking_data: BookingUpdate,
 ) -> Booking:
-    """Обновляет бронирование."""
-    await validate_booking_is_updatable(booking)
+    """Изменяет бронирование."""
+    if booking.booking_date < date.today():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Нельзя изменять прошедшее бронирование',
+        )
 
-    data = booking_data.model_dump(exclude_unset=True)
+    if booking.status != BookingStatus.BOOKING:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Изменить можно только бронирование со статусом BOOKING',
+        )
 
-    cafe_id = data.get("cafe_id", booking.cafe_id)
-    booking_date = data.get("booking_date", booking.booking_date)
-    tables_slots = data.get("tables_slots")
+    update_data = booking_data.model_dump(exclude_unset=True)
+
+    tables_slots = update_data.pop('tables_slots', None)
 
     if tables_slots is not None:
-        await validate_cafe_exists(
-            session=session,
-            cafe_id=cafe_id,
-        )
+        for table_slot in booking.tables_slots:
+            await session.delete(table_slot)
 
-        await validate_tables_and_slots(
-            session=session,
-            cafe_id=cafe_id,
-            tables_slots=tables_slots,
-        )
-
-        await validate_no_overlap(
-            session=session,
-            booking_date=booking_date,
-            tables_slots=tables_slots,
-            exclude_booking_id=booking.id,
-        )
-
-    for field, value in data.items():
-        if field != "tables_slots":
-            setattr(booking, field, value)
-
-    if tables_slots is not None:
-        booking_table_slots = await session.scalars(
-            BookingTableSlot.__table__.select().where(
-                BookingTableSlot.booking_id == booking.id,
-            ),
-        )
-
-        for booking_table_slot in booking_table_slots:
-            await session.delete(booking_table_slot)
-
-        for item in tables_slots:
+        for table_slot in tables_slots:
             session.add(
                 BookingTableSlot(
                     booking_id=booking.id,
-                    table_id=item.table_id,
-                    slot_id=item.slot_id,
+                    table_id=table_slot['table_id'],
+                    slot_id=table_slot['slot_id'],
                 ),
             )
 
-    await session.commit()
-    await session.refresh(booking)
+    for field, value in update_data.items():
+        setattr(booking, field, value)
 
-    return booking
+    await session.commit()
+
+    return await _get_booking_with_relations(
+        session,
+        booking.id,
+    )
 
 
 async def cancel_booking(
@@ -124,11 +142,23 @@ async def cancel_booking(
     booking: Booking,
 ) -> Booking:
     """Отменяет бронирование."""
-    await validate_booking_is_updatable(booking)
+    if booking.booking_date < date.today():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Нельзя отменить прошедшее бронирование',
+        )
+
+    if booking.status != BookingStatus.BOOKING:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Отменить можно только бронирование со статусом BOOKING',
+        )
 
     booking.status = BookingStatus.CANCELED
 
     await session.commit()
-    await session.refresh(booking)
 
-    return booking
+    return await _get_booking_with_relations(
+        session,
+        booking.id,
+    )
