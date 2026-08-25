@@ -120,19 +120,32 @@ async def update_user_by_id(
             status_code=HTTPStatus.NOT_FOUND,
             detail='Пользователь не найден',
         )
+
+    # Проверка прав доступа
     if current_user.role == UserRole.USER and user.id != current_user.id:
         logger.warning('Отказано в изменении пользователя id={}: недостаточно прав', user_id)
         raise HTTPException(
             status_code=HTTPStatus.FORBIDDEN,
             detail='Доступ только к своей записи',
         )
-    # логирование блокировки/разблокировки
+
+    # Дополнительная защита для обычного пользователя: запрет изменения роли и активности
+    if current_user.role == UserRole.USER:
+        if user_update.role is not None or user_update.is_active is not None:
+            logger.warning('Попытка изменения роли или активности самому себе через /{user_id}')
+            raise HTTPException(
+                status_code=HTTPStatus.FORBIDDEN,
+                detail='Нельзя изменять роль или активность',
+            )
+
+    # Логирование блокировки/разблокировки
     if user_update.is_active is not None and user_update.is_active != user.is_active:
         if user_update.is_active:
             logger.info('Пользователь id={} разблокирован', user_id)
         else:
             logger.info('Пользователь id={} заблокирован', user_id)
-    # логирование изменения роли
+
+    # Логирование изменения роли
     if user_update.role is not None and user_update.role != user.role:
         logger.info(
             'Изменена роль пользователя id={}: {} -> {}',
