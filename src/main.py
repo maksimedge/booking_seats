@@ -5,6 +5,7 @@ import uvicorn
 from fastapi import FastAPI
 
 from api.router import main_router
+from tables import router as tables_router
 
 from core.logger import logger, setup_logging
 from core.middleware import LoggingMiddleware
@@ -30,6 +31,7 @@ app = FastAPI(
 app.add_middleware(LoggingMiddleware)
 
 app.include_router(main_router)
+app.include_router(tables_router)
 
 
 @app.get(
