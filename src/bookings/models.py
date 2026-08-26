@@ -5,9 +5,9 @@ from typing import List, Optional
 from slots.models import TimeSlot
 from sqlalchemy import CheckConstraint, Date, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from tables.models import Table
 
 from cafes.models import Cafe
+from tables.models import Table
 from users.models import User
 
 from .constants import MAX_NOTE_LENGTH
