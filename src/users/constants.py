@@ -1,0 +1,18 @@
+from enum import Enum
+
+USERNAME_MAX_LENGTH = 100
+USERNAME_MIN_LENGTH = 3
+PASSWORD_MIN_LENGTH = 6
+PASSWORD_HASH_MAX_LENGTH = 255
+EMAIL_MAX_LENGTH = 255
+PHONE_MAX_LENGTH = 20
+TG_ID_MAX_LENGTH = 100
+ROLE_MAX_LENGTH = 20
+
+
+class UserRole(str, Enum):
+    """Роли пользователей."""
+
+    ADMIN = 'ADMIN'
+    MANAGER = 'MANAGER'
+    USER = 'USER'

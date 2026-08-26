@@ -9,3 +9,28 @@ wheels/
 # Virtual environments
 .venv
 .env
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+/images/
+
+# Virtual environments
+.venv
+.env
+venv/
+
+# Logs
+logs/
+*.log
+
+# Migrations (local)
+src/migrations/
+alembic/
+alembic.ini
+
+#Images
+/images/

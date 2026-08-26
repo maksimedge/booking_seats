@@ -7,22 +7,28 @@ from fastapi import FastAPI
 from api.router import main_router
 from tables import router as tables_router
 
+from core.logger import logger, setup_logging
+from core.middleware import LoggingMiddleware
 from core.settings import settings
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator:
     """Жизненный цикл приложения FastAPI."""
-    # TODO: Добавить код, выполняемый при старте приложения
+    setup_logging()
+    logger.info('Приложение "{}" запущено (версия {})', settings.title, settings.version)
     yield
-    # TODO: Добавить код, выполняемый при остановке приложения
+    logger.info('Приложение "{}" остановлено', settings.title)
 
 
 app = FastAPI(
     title=settings.title,
     version=settings.version,
     description=settings.description,
+    lifespan=lifespan,
 )
+
+app.add_middleware(LoggingMiddleware)
 
 app.include_router(main_router)
 app.include_router(tables_router)
