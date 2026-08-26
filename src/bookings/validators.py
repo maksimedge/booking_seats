@@ -5,11 +5,11 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from tables.models import Table
-from time_slots.models import TimeSlot
 
 from bookings.models import Booking, BookingStatus, BookingTableSlot
 from bookings.schemas import TableSlot
 from cafes.models import Cafe
+from time_slots.models import TimeSlot
 
 
 async def validate_cafe_exists(session: AsyncSession, cafe_id: int) -> None:
@@ -65,10 +65,7 @@ async def validate_no_overlap(
         if result.scalars().first() is not None:
             raise HTTPException(
                 status.HTTP_409_CONFLICT,
-                detail=(
-                    f'Стол {item.table_id} уже забронирован '
-                    f'на слот {item.slot_id} в выбранную дату'
-                ),
+                detail=(f'Стол {item.table_id} уже забронирован на слот {item.slot_id} в выбранную дату'),
             )
 
 
