@@ -5,6 +5,7 @@ build/
 dist/
 wheels/
 *.egg-info
+/images/
 
 # Virtual environments
 .venv
@@ -17,3 +18,8 @@ logs/
 
 # Migrations (local)
 src/migrations/
+alembic/
+alembic.ini
+
+#Images
+/images/
