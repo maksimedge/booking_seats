@@ -55,6 +55,7 @@ async def upload_media(file: UploadFile, session: AsyncSession) -> uuid.UUID:
     try:
         media_file = await create_media(str(relative_path), session)
         await session.commit()
+        logger.info('Файл c ID:{} был сохранен по адресу: {}', media_file.id, file_path)
     except SQLAlchemyError as error:
         await session.rollback()
 
