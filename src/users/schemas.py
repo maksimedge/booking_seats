@@ -1,4 +1,5 @@
 import re
+import uuid
 from datetime import datetime
 from typing import Optional, Self
 
@@ -74,7 +75,7 @@ class UserUpdate(BaseModel):
 class UserShortInfo(BaseModel):
     """Краткая информация о пользователе."""
 
-    id: int
+    id: uuid.UUID  # было int, исправлено
     username: str
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
