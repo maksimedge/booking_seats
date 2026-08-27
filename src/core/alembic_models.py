@@ -1,5 +1,6 @@
 from cafes.models import Cafe
 from media.models import Image
+from time_slots.models import TimeSlot
 from tables.models import Table
 from users.models import User
 
@@ -10,5 +11,6 @@ __all__ = [
     'Image',
     'User',
     'Cafe',
+    'TimeSlot',
     'Table',
 ]

@@ -41,5 +41,12 @@ class Cafe(Base):
         lazy='selectin',
     )
 
+    time_slots = relationship(
+        'TimeSlot',
+        back_populates='cafe',
+        lazy='selectin',
+        cascade='all, delete-orphan',
+    )
+
     def __repr__(self) -> str:
         return f'<Cafe {self.id}: {self.name}>'
