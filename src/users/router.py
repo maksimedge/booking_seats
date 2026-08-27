@@ -21,7 +21,7 @@ from users.services import (
 
 from core.db import get_session
 
-router = APIRouter(prefix='/users', tags=['Пользователи'])
+router = APIRouter(prefix='/users')
 
 
 @router.post('/', response_model=UserInfo, status_code=HTTPStatus.CREATED)

@@ -9,7 +9,7 @@ from time_slots.schemas import TimeSlotCreate, TimeSlotInfo, TimeSlotUpdate
 
 from core.db import get_session
 
-router = APIRouter(prefix='/cafes/{cafe_id}/time_slots', tags=['Time Slots'])
+router = APIRouter(prefix='/cafes/{cafe_id}/time_slots')
 
 
 @router.get('/', response_model=List[TimeSlotInfo])

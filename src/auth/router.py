@@ -11,7 +11,7 @@ from core.db import get_session
 from core.logger import logger
 from core.security import create_access_token, verify_password
 
-router = APIRouter(prefix='/auth', tags=['Аутентификация'])
+router = APIRouter(prefix='/auth')
 
 
 @router.post('/login', response_model=AuthToken)

@@ -4,11 +4,11 @@ from typing import List, Optional
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from tables.models import Table
 
 from bookings.models import Booking, BookingStatus, BookingTableSlot
 from bookings.schemas import TableSlot
 from cafes.models import Cafe
+from tables.models import Table
 from time_slots.models import TimeSlot
 
 

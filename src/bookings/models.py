@@ -2,16 +2,16 @@ import enum
 from datetime import date
 from typing import List, Optional
 
-from slots.models import TimeSlot
 from sqlalchemy import CheckConstraint, Date, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from cafes.models import Cafe
 from tables.models import Table
+from time_slots.models import TimeSlot
 from users.models import User
 
 from .constants import MAX_NOTE_LENGTH
-from core.db import Base
+from core.base_model import Base
 
 
 class BookingTableSlot(Base):

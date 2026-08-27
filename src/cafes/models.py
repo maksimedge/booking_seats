@@ -1,7 +1,7 @@
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Table, Text
+from sqlalchemy import Boolean, Column, ForeignKey, String, Table, Text
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -18,7 +18,7 @@ cafe_managers = Table(
     'cafe_managers',
     Base.metadata,
     Column('cafe_id', PG_UUID(as_uuid=True), ForeignKey('cafes.id', ondelete='CASCADE'), primary_key=True),
-    Column('user_id', Integer, ForeignKey('users.id', ondelete='CASCADE'), primary_key=True),
+    Column('user_id', PG_UUID, ForeignKey('users.id', ondelete='CASCADE'), primary_key=True),
 )
 
 

@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.dependencies import get_current_user
+from auth.dependencies import get_current_active_user
 from bookings import service
-from bookings.dependencies import get_booking_for_current_user
 from bookings.models import Booking
 from bookings.schemas import BookingCreate, BookingInfo, BookingUpdate
 from users.models import User
@@ -24,7 +23,7 @@ router = APIRouter(
 async def create_booking_endpoint(
     booking_data: BookingCreate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
 ) -> Booking:
     """Создать бронирование."""
     return await service.create_booking(
@@ -40,7 +39,7 @@ async def create_booking_endpoint(
 )
 async def update_booking_endpoint(
     booking_data: BookingUpdate,
-    booking: Booking = Depends(get_booking_for_current_user),
+    booking: Booking,  # = Depends(get_booking_for_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> Booking:
     """Изменить бронирование."""
@@ -56,7 +55,7 @@ async def update_booking_endpoint(
     response_model=BookingInfo,
 )
 async def cancel_booking_endpoint(
-    booking: Booking = Depends(get_booking_for_current_user),
+    booking: Booking,  # = Depends(get_booking_for_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> Booking:
     """Отменить бронирование."""

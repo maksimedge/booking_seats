@@ -1,26 +1,44 @@
 from fastapi import APIRouter
 
-from api import auth_router, cafes_router, media_router, time_slots_router, users_router
+from api import (
+    auth_router,
+    # booking_router,
+    cafes_router,
+    media_router,
+    table_router,
+    time_slots_router,
+    users_router,
+)
 
 main_router = APIRouter(prefix='/api/v1')
 
 main_router.include_router(
     media_router,
-    tags=['Media'],
+    tags=['Медиа'],
 )
 main_router.include_router(
     auth_router,
-    tags=['Users'],
+    tags=['Пользователи'],
 )
 main_router.include_router(
     users_router,
-    tags=['Auth'],
+    tags=['Аутентификация'],
 )
 main_router.include_router(
     cafes_router,
-    tags=['Cafes'],
+    tags=['Кафе'],
 )
 main_router.include_router(
     time_slots_router,
-    tags=['Time Slots'],
+    tags=['Временные слоты'],
+)
+
+# main_router.include_router(
+#     booking_router,
+#     tags=['Бронирования'],
+# )
+
+main_router.include_router(
+    table_router,
+    tags=['Столы'],
 )

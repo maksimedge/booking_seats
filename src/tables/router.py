@@ -14,7 +14,6 @@ from core.db import get_session
 
 router = APIRouter(
     prefix='/cafes',
-    tags=['Столы'],
 )
 
 
