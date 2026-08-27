@@ -16,3 +16,6 @@ class UserRole(str, Enum):
     ADMIN = 'ADMIN'
     MANAGER = 'MANAGER'
     USER = 'USER'
+
+
+STAFF_USER = (UserRole.ADMIN, UserRole.MANAGER)
