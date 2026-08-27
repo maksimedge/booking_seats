@@ -123,29 +123,3 @@ async def update_table(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Database integrity error',
         )
-
-
-async def delete_table(db: AsyncSession, table_id: int) -> bool:
-    """Мягкое удаление (деактивация) стола."""
-    table = await get_table_by_id(db, table_id)
-    if not table:
-        logger.warning(f'Стол id={table_id} не найден')
-        return False
-
-    table.is_active = False
-    try:
-        await db.commit()
-
-        log_action(
-            'Стол деактивирован',
-            table='tables',
-            table_id=table_id,
-        )
-
-        return True
-    except Exception as e:
-        await db.rollback()
-        logger.error(
-            f'Ошибка при деактивации стола id={table_id}: {str(e)}',
-        )
-        raise
