@@ -12,6 +12,7 @@ from users.models import User
 
 from core.db import get_session
 from core.logger import logger
+from core.logger import set_log_context
 from core.security import decode_access_token
 
 bearer_scheme = HTTPBearer(auto_error=False)

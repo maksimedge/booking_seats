@@ -8,7 +8,6 @@ from sqlalchemy.orm import selectinload
 from bookings.models import Booking, BookingStatus, BookingTableSlot
 from bookings.schemas import BookingCreate, BookingUpdate
 from bookings.validators import (
-    validate_booking_is_updatable,
     validate_cafe_exists,
     validate_no_overlap,
     validate_tables_and_slots,
