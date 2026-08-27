@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -34,7 +36,7 @@ async def create_user(db: AsyncSession, user_create: UserCreate) -> User:
     return user
 
 
-async def get_user_by_id(db: AsyncSession, user_id: int) -> User | None:
+async def get_user_by_id(db: AsyncSession, user_id: UUID) -> User | None:
     """Возвращает пользователя по его идентификатору."""
     return await db.get(User, user_id)
 
