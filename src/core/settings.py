@@ -24,9 +24,9 @@ class Settings(BaseSettings):
     images_dir: Path = Path('images')
 
     # Аутентификация
-    secret_key: str = 'secret'
-    algorithm: str = 'HS256'
-    access_token_expire_minutes: int = 30
+    secret_key: str
+    algorithm: str
+    access_token_expire_minutes: int
 
     # Настройки логирования
     log_level: str = 'INFO'
