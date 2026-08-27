@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from http import HTTPStatus
 from typing import Annotated, Any, Optional
+from uuid import UUID
 
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -40,12 +41,12 @@ async def get_optional_current_user(
         return None
 
     try:
-        user_id_int = int(user_id)
+        user_id_uuid = UUID(user_id)
     except (TypeError, ValueError):
         logger.warning('Некорректный идентификатор пользователя в токене')
         return None
 
-    user = await get_user_by_id(db, user_id_int)
+    user = await get_user_by_id(db, user_id_uuid)
     if user is None:
         logger.warning('Пользователь по токену не найден')
         return None
