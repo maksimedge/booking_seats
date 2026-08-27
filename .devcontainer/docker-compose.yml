@@ -6,6 +6,9 @@ services:
     volumes:
       - ..:/workspace:cached
     command: sleep infinity
+    depends_on:
+      - db
+      - rabbitmq
 
   db:
     image: postgres:17-alpine
@@ -29,6 +32,14 @@ services:
       timeout: 10s
       retries: 5
     restart: unless-stopped
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: booking
+      RABBITMQ_DEFAULT_PASS: booking_password
+    ports:
+      - "5672:5672"
+      - "15672:15672"
 
 volumes:
   pgdata:

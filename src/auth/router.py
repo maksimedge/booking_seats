@@ -42,5 +42,6 @@ async def login(
             detail='Неверные имя пользователя или пароль',
         )
     token = create_access_token(data={'sub': str(user.id), 'role': user.role.value})
+    print(f'созданный токен: {token}')
     logger.info('Пользователь успешно авторизован')
     return AuthToken(access_token=token)

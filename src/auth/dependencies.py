@@ -29,6 +29,7 @@ async def get_optional_current_user(
 
     token = credentials.credentials
     payload = decode_access_token(token)
+    print(f'this is payload: {payload}')
     if payload is None:
         logger.warning('Получен невалидный токен авторизации')
         return None
