@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from uuid import UUID
 
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -59,7 +60,7 @@ async def update_me_service(
 
 
 async def get_user_service(
-    user_id: int,
+    user_id: UUID,
     db: AsyncSession,
     current_user: User,
 ) -> User:
@@ -79,7 +80,7 @@ async def get_user_service(
 
 
 async def update_user_by_id_service(
-    user_id: int,
+    user_id: UUID,
     user_update: UserUpdate,
     db: AsyncSession,
     current_user: User,

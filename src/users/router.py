@@ -1,5 +1,6 @@
 from http import HTTPStatus
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -61,7 +62,7 @@ async def update_me(
 
 @router.get('/{user_id}', response_model=UserInfo)
 async def get_user(
-    user_id: int,
+    user_id: UUID,
     db: Annotated[AsyncSession, Depends(get_session)],
     current_user: User = Depends(get_current_active_user),
 ) -> UserInfo:
@@ -71,7 +72,7 @@ async def get_user(
 
 @router.patch('/{user_id}', response_model=UserInfo)
 async def update_user_by_id(
-    user_id: int,
+    user_id: UUID,
     user_update: UserUpdate,
     db: Annotated[AsyncSession, Depends(get_session)],
     current_user: User = Depends(get_current_active_user),
