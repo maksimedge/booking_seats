@@ -27,9 +27,13 @@ async def get_tables_by_cafe(
     return result.scalars().all()
 
 
-async def create_table(db: AsyncSession, table_data: TableCreate) -> Table:
+async def create_table(db: AsyncSession, cafe_id: int, table_data: TableCreate) -> Table:
     """Создать новый стол."""
-    new_table = Table(**table_data.model_dump())
+    new_table = Table(
+        cafe_id=cafe_id,
+        seat_number=table_data.seat_number,
+        description=table_data.description,
+    )
     db.add(new_table)
     try:
         await db.commit()
@@ -37,8 +41,8 @@ async def create_table(db: AsyncSession, table_data: TableCreate) -> Table:
         log_action(
             'Создана запись',
             table='tables',
-            cafe_id=table_data.cafe_id,
-            seats_count=table_data.seats_count,
+            cafe_id=cafe_id,
+            seat_number=table_data.seat_number,
         )
         return new_table
 
@@ -48,17 +52,17 @@ async def create_table(db: AsyncSession, table_data: TableCreate) -> Table:
         error_msg = str(e).lower()
         if 'foreign key' in error_msg:
             logger.warning(
-                f'Невозможно создать стол: кафе id={table_data.cafe_id} не найдено',
+                f'Невозможно создать стол: кафе id={cafe_id} не найдено',
             )
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f'Cafe with id {table_data.cafe_id} not found',
+                detail=f'Кафе с id {cafe_id} не найдено',
             )
 
         logger.error(f'Ошибка при создании стола: {str(e)}')
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Database integrity error',
+            detail='Ошибка базы данных',
         )
 
 
@@ -73,9 +77,7 @@ async def update_table(
         logger.warning(f'Стол id={table_id} не найден')
         return None
 
-    old_seats_count = table.seats_count
-    old_cafe_id = table.cafe_id
-
+    old_seat_number = table.seat_number
     update_data = table_update.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(table, key, value)
@@ -84,13 +86,12 @@ async def update_table(
         await db.commit()
         await db.refresh(table)
         changes = []
-        if 'seats_count' in update_data and old_seats_count != table.seats_count:
-            changes.append(f'Изменено количество мест: {old_seats_count} -> {table.seats_count}')
-        if 'cafe_id' in update_data and old_cafe_id != table.cafe_id:
-            changes.append(f'Изменен кафе: {old_cafe_id} -> {table.cafe_id}')
+        if 'seat_number' in update_data and old_seat_number != table.seat_number:
+            changes.append(f'Изменено количество мест: {old_seat_number} -> {table.seat_number}')
         if 'description' in update_data:
             changes.append('Обновлено описание')
-
+        if 'is_active' in update_data:
+            changes.append(f'Статус активности: {"активен" if table.is_active else "неактивен"}')
         if changes:
             for change in changes:
                 log_action(
@@ -117,9 +118,9 @@ async def update_table(
         if 'foreign key' in error_msg:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f'Cafe with id {table_update.cafe_id} not found',
+                detail=f'Кафе с id {table_update.cafe_id} не найдено',
             )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Database integrity error',
+            detail='Ошибка базы данных',
         )
