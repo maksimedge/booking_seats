@@ -71,7 +71,10 @@ async def get_user_service(
             status_code=HTTPStatus.NOT_FOUND,
             detail='Пользователь не найден',
         )
-    if current_user.role == UserRole.USER and user.id != current_user.id:
+    logger.info(f'Тип user.id: {type(user.id)}, значение: {user.id}')
+    logger.info(f'Тип current_user.id: {type(current_user.id)}, значение: {current_user.id}')
+
+    if current_user.role == UserRole.USER and str(user.id) != str(current_user.id):
         raise HTTPException(
             status_code=HTTPStatus.FORBIDDEN,
             detail='Доступ только к своей записи',
@@ -95,7 +98,7 @@ async def update_user_by_id_service(
         )
 
     # Проверка прав доступа
-    if current_user.role == UserRole.USER and user.id != current_user.id:
+    if current_user.role == UserRole.USER and str(user.id) != str(current_user.id):
         logger.warning('Отказано в изменении пользователя id={}: недостаточно прав', user_id)
         raise HTTPException(
             status_code=HTTPStatus.FORBIDDEN,

@@ -76,7 +76,7 @@ def role_required(*allowed_roles: UserRole, allow_anon: bool = False) -> Callabl
                 detail='Пользователь заблокирован',
             )
 
-        if user.role not in allowed_roles:
+        if allowed_roles and user.role not in allowed_roles:
             logger.warning('Отказано в доступе: недостаточно прав')
             raise HTTPException(
                 status_code=HTTPStatus.FORBIDDEN,
