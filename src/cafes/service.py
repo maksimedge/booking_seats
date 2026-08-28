@@ -10,16 +10,7 @@ from users.models import User
 
 
 async def create_cafe(db: AsyncSession, cafe_data: CafeCreate) -> Cafe:
-    """Создание нового кафе.
-
-    Args:
-        db: Сессия базы данных.
-        cafe_data: Данные для создания кафе.
-
-    Returns:
-        Cafe: Созданное кафе.
-
-    """
+    """Создание нового кафе."""
     new_cafe = Cafe(
         name=cafe_data.name,
         address=cafe_data.address,
@@ -36,6 +27,7 @@ async def create_cafe(db: AsyncSession, cafe_data: CafeCreate) -> Cafe:
         )
         managers = result.scalars().all()
         if managers:
+            await db.refresh(new_cafe, attribute_names=['managers'])
             new_cafe.managers.extend(managers)
 
     await db.commit()
@@ -49,18 +41,7 @@ async def get_cafes(
     limit: int = 100,
     is_active: Optional[bool] = None,
 ) -> List[Cafe]:
-    """Получение списка кафе с пагинацией и фильтрацией.
-
-    Args:
-        db: Сессия базы данных.
-        skip: Количество пропускаемых записей.
-        limit: Максимальное количество записей.
-        is_active: Фильтр по активности.
-
-    Returns:
-        List[Cafe]: Список кафе.
-
-    """
+    """Получение списка кафе с пагинацией и фильтрацией."""
     query = select(Cafe)
     if is_active is not None:
         query = query.where(Cafe.is_active == is_active)
@@ -70,16 +51,7 @@ async def get_cafes(
 
 
 async def get_cafe_by_id(db: AsyncSession, cafe_id: UUID) -> Optional[Cafe]:
-    """Получение кафе по ID.
-
-    Args:
-        db: Сессия базы данных.
-        cafe_id: UUID кафе.
-
-    Returns:
-        Optional[Cafe]: Найденное кафе или None.
-
-    """
+    """Получение кафе по ID."""
     query = select(Cafe).where(Cafe.id == cafe_id)
     result = await db.execute(query)
     return result.scalar_one_or_none()
@@ -90,17 +62,7 @@ async def update_cafe(
     cafe: Cafe,
     update_data: CafeUpdate,
 ) -> Cafe:
-    """Обновление данных кафе.
-
-    Args:
-        db: Сессия базы данных.
-        cafe: Обновляемое кафе.
-        update_data: Данные для обновления.
-
-    Returns:
-        Cafe: Обновлённое кафе.
-
-    """
+    """Обновление данных кафе."""
     if update_data.name is not None:
         cafe.name = update_data.name
     if update_data.address is not None:
@@ -119,8 +81,8 @@ async def update_cafe(
             select(User).where(User.id.in_(update_data.managers_id)),
         )
         managers = result.scalars().all()
-        cafe.managers.clear()
-        cafe.managers.extend(managers)
+        await db.refresh(cafe, attribute_names=['managers'])
+        cafe.managers = managers
 
     await db.commit()
     await db.refresh(cafe)
