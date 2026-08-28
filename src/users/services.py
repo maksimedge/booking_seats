@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from uuid import UUID
 
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -59,7 +60,7 @@ async def update_me_service(
 
 
 async def get_user_service(
-    user_id: int,
+    user_id: UUID,
     db: AsyncSession,
     current_user: User,
 ) -> User:
@@ -70,7 +71,10 @@ async def get_user_service(
             status_code=HTTPStatus.NOT_FOUND,
             detail='Пользователь не найден',
         )
-    if current_user.role == UserRole.USER and user.id != current_user.id:
+    logger.info(f'Тип user.id: {type(user.id)}, значение: {user.id}')
+    logger.info(f'Тип current_user.id: {type(current_user.id)}, значение: {current_user.id}')
+
+    if current_user.role == UserRole.USER and str(user.id) != str(current_user.id):
         raise HTTPException(
             status_code=HTTPStatus.FORBIDDEN,
             detail='Доступ только к своей записи',
@@ -79,7 +83,7 @@ async def get_user_service(
 
 
 async def update_user_by_id_service(
-    user_id: int,
+    user_id: UUID,
     user_update: UserUpdate,
     db: AsyncSession,
     current_user: User,
@@ -94,7 +98,7 @@ async def update_user_by_id_service(
         )
 
     # Проверка прав доступа
-    if current_user.role == UserRole.USER and user.id != current_user.id:
+    if current_user.role == UserRole.USER and str(user.id) != str(current_user.id):
         logger.warning('Отказано в изменении пользователя id={}: недостаточно прав', user_id)
         raise HTTPException(
             status_code=HTTPStatus.FORBIDDEN,
