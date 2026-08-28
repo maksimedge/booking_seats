@@ -26,7 +26,7 @@ class CafeBase(BaseModel):
 class CafeCreate(CafeBase):
     """Схема для создания кафе."""
 
-    managers_id: Optional[List[UUID]] = Field(default=[], description='ID менеджеров кафе')  # ✅ UUID
+    managers_id: Optional[List[UUID]] = Field(default=[], description='ID менеджеров кафе')
 
 
 class CafeUpdate(BaseModel):
