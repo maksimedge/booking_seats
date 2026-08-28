@@ -12,7 +12,7 @@ from users.crud import get_user_by_id
 from users.models import User
 
 from core.db import get_session
-from core.logger import logger
+from core.logger import logger, set_log_context  # <-- добавлен импорт
 from core.security import decode_access_token
 
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -50,6 +50,8 @@ async def get_optional_current_user(
         logger.warning('Пользователь по токену не найден')
         return None
 
+    # Устанавливаем контекст для логов – теперь все логи в запросе будут содержать user_id и username
+    set_log_context(user_id=user.id, username=user.username)
     return user
 
 
@@ -81,6 +83,9 @@ def role_required(*allowed_roles: UserRole, allow_anon: bool = False) -> Callabl
                 detail='Недостаточно прав',
             )
 
+        # Дополнительная страховка: если контекст не был установлен (например, при allow_anon=True,
+        # но пользователь оказался авторизованным) – устанавливаем его здесь.
+        set_log_context(user_id=user.id, username=user.username)
         return user
 
     return check_role
