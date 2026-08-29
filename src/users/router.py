@@ -25,7 +25,12 @@ from core.db import get_session
 router = APIRouter(prefix='/users')
 
 
-@router.post('/', response_model=UserInfo, status_code=HTTPStatus.CREATED)
+@router.post(
+    '/',
+    response_model=UserInfo,
+    status_code=HTTPStatus.CREATED,
+    summary='Регистрация нового пользователя',
+)
 async def register_user(
     user_create: UserCreate,
     db: Annotated[AsyncSession, Depends(get_session)],
@@ -35,7 +40,11 @@ async def register_user(
     return await register_user_service(user_create, db, current_user)
 
 
-@router.get('/', response_model=list[UserInfo])
+@router.get(
+    '/',
+    response_model=list[UserInfo],
+    summary='Получение списка пользователей',
+)
 async def list_users(
     db: Annotated[AsyncSession, Depends(get_session)],
     _: User = Depends(get_current_manager_or_admin),
@@ -44,13 +53,21 @@ async def list_users(
     return await get_all_users(db)
 
 
-@router.get('/me', response_model=UserInfo)
+@router.get(
+    '/me',
+    response_model=UserInfo,
+    summary='Получение информации о текущем пользователе',
+)
 async def get_me(current_user: User = Depends(get_current_active_user)) -> UserInfo:
     """Возвращает информацию о текущем пользователе."""
     return current_user
 
 
-@router.patch('/me', response_model=UserInfo)
+@router.patch(
+    '/me',
+    response_model=UserInfo,
+    summary='Обновление информации о текущем пользователе',
+)
 async def update_me(
     user_update: UserUpdate,
     db: Annotated[AsyncSession, Depends(get_session)],
@@ -60,7 +77,11 @@ async def update_me(
     return await update_me_service(user_update, db, current_user)
 
 
-@router.get('/{user_id}', response_model=UserInfo)
+@router.get(
+    '/{user_id}',
+    response_model=UserInfo,
+    summary='Получение информации о пользователе по его ID',
+)
 async def get_user(
     user_id: UUID,
     db: Annotated[AsyncSession, Depends(get_session)],
@@ -70,7 +91,11 @@ async def get_user(
     return await get_user_service(user_id, db, current_user)
 
 
-@router.patch('/{user_id}', response_model=UserInfo)
+@router.patch(
+    '/{user_id}',
+    response_model=UserInfo,
+    summary='Обновление информации о пользователе по его ID',
+)
 async def update_user_by_id(
     user_id: UUID,
     user_update: UserUpdate,

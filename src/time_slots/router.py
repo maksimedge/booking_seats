@@ -11,10 +11,14 @@ from time_slots.schemas import TimeSlotCreate, TimeSlotInfo, TimeSlotUpdate
 from core.db import get_session
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix='/cafes/{cafe_id}/time_slots', tags=['Time Slots'])
+router = APIRouter(prefix='/cafes/{cafe_id}/time_slots')
 
 
-@router.get('/', response_model=List[TimeSlotInfo])
+@router.get(
+    '/',
+    response_model=List[TimeSlotInfo],
+    summary='Список временных слотова в кафе',
+)
 async def get_time_slots(
     cafe_id: UUID,
     skip: int = 0,
@@ -27,7 +31,12 @@ async def get_time_slots(
     return await service.get_time_slots_by_cafe(db, cafe_id, skip, limit, is_active)
 
 
-@router.post('/', response_model=TimeSlotInfo, status_code=status.HTTP_201_CREATED)
+@router.post(
+    '/',
+    response_model=TimeSlotInfo,
+    status_code=status.HTTP_201_CREATED,
+    summary='Новый временный слот в кафе',
+)
 async def create_time_slot(
     cafe_id: UUID,
     slot_data: TimeSlotCreate,
@@ -40,7 +49,11 @@ async def create_time_slot(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.get('/{slot_id}', response_model=TimeSlotInfo)
+@router.get(
+    '/{slot_id}',
+    response_model=TimeSlotInfo,
+    summary='Информация о временном слоте в кафе по его ID',
+)
 async def get_time_slot(
     cafe_id: UUID,
     slot_id: UUID,
@@ -55,7 +68,11 @@ async def get_time_slot(
     return slot
 
 
-@router.patch('/{slot_id}', response_model=TimeSlotInfo)
+@router.patch(
+    '/{slot_id}',
+    response_model=TimeSlotInfo,
+    summary='Обновление информации о временном слоте в кафе по его ID',
+)
 async def update_time_slot(
     cafe_id: UUID,
     slot_id: UUID,

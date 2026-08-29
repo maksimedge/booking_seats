@@ -18,6 +18,7 @@ router = APIRouter(prefix='/cafes', tags=['Кафе'])
 @router.get(
     '/',
     response_model=List[CafeShortInfo],
+    summary='Получение списка кафе',
 )
 async def get_cafes(
     skip: int = 0,
@@ -38,6 +39,7 @@ async def get_cafes(
     '/',
     response_model=CafeInfo,
     status_code=status.HTTP_201_CREATED,
+    summary='Создание нового кафе',
 )
 async def create_cafe(
     cafe_data: CafeCreate,
@@ -51,6 +53,7 @@ async def create_cafe(
 @router.get(
     '/{cafe_id}',
     response_model=CafeInfo,
+    summary='Получение информации о кафе по его ID',
 )
 async def get_cafe(
     cafe_id: UUID,
@@ -69,6 +72,7 @@ async def get_cafe(
 @router.patch(
     '/{cafe_id}',
     response_model=CafeInfo,
+    summary='Обновление информации о кафе по его ID',
 )
 async def update_cafe(
     cafe_id: UUID,

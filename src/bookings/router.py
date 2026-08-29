@@ -10,13 +10,14 @@ from users.models import User
 
 from core.db import get_session
 
-router = APIRouter(prefix='/api/v1/booking', tags=['booking'])
+router = APIRouter(prefix='/booking')
 
 
 @router.post(
     '',
     response_model=BookingInfo,
     status_code=status.HTTP_201_CREATED,
+    summary='Создавние нового бронирования',
 )
 async def create_booking_endpoint(
     booking_data: BookingCreate,
@@ -27,7 +28,11 @@ async def create_booking_endpoint(
     return await service.create_booking(session, booking_data, current_user.id)
 
 
-@router.patch('/{booking_id}', response_model=BookingInfo)
+@router.patch(
+    '/{booking_id}',
+    response_model=BookingInfo,
+    summary='Обновление информации о бронировании по его ID',
+)
 async def update_booking_endpoint(
     booking_data: BookingUpdate,
     booking: Booking = Depends(get_booking_for_current_user),
