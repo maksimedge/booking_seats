@@ -5,6 +5,10 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from bookings.constants import MAX_NOTE_LENGTH, MIN_GUEST_NUMBER
 from bookings.models import BookingStatus
+from cafes.schemas import CafeShortInfo
+from tables.schemas import TableResponse
+from time_slots.schemas import TimeSlotInfo
+from users.schemas import UserShortInfo
 
 
 class TableSlot(BaseModel):
@@ -14,45 +18,11 @@ class TableSlot(BaseModel):
     slot_id: int = Field(..., description='ID временного слота')
 
 
-class UserShortInfo(BaseModel):
-    """Краткая информация о пользователе."""
-
-    id: int = Field(..., description='ID пользователя')
-    username: str = Field(..., description='Имя пользователя')
-    email: Optional[str] = Field(None, description='Email')
-    phone: Optional[str] = Field(None, description='Телефон')
-
-
-class CafeShortInfo(BaseModel):
-    """Краткая информация о кафе."""
-
-    id: int = Field(..., description='ID кафе')
-    name: str = Field(..., description='Название кафе')
-    address: str = Field(..., description='Адрес')
-    phone: str = Field(..., description='Телефон')
-
-
-class TableShortInfo(BaseModel):
-    """Краткая информация о столе."""
-
-    id: int = Field(..., description='ID стола')
-    seat_number: int = Field(..., description='Количество мест')
-    description: Optional[str] = Field(None, description='Описание стола')
-
-
-class TimeSlotShortInfo(BaseModel):
-    """Краткая информация о временном слоте."""
-
-    id: int = Field(..., description='ID слота')
-    start_time: str = Field(..., description='Время начала (HH:MM)')
-    end_time: str = Field(..., description='Время окончания (HH:MM)')
-
-
 class TableSlotInfo(BaseModel):
     """Пара (стол + слот) с полной информацией."""
 
-    table: TableShortInfo = Field(..., description='Информация о столе')
-    slot: TimeSlotShortInfo = Field(..., description='Информация о слоте')
+    table: TableResponse = Field(..., description='Информация о столе')
+    slot: TimeSlotInfo = Field(..., description='Информация о слоте')
 
 
 def validate_future_date(v: date) -> date:
@@ -94,9 +64,11 @@ class BookingCreate(BaseModel):
 
     @field_validator('tables_slots')
     @classmethod
-    def validate_tables_slots(cls, v: List[TableSlot]) -> List[TableSlot]:
-        """Проверяет, что список пар (стол + слот) не пустой."""
-        return validate_tables_slots_list(v)
+    def validate_tables_slots(cls, v: Optional[List[TableSlot]]) -> Optional[List[TableSlot]]:
+        """Проверяет, что список пар (стол + слот) не пустой (если передан)."""
+        if v is not None and not v:
+            raise ValueError('Список столов не может быть пустым')
+        return v
 
 
 class BookingUpdate(BaseModel):
