@@ -10,6 +10,9 @@ from api import (
     users_router,
 )
 
+# temp
+from notifications.router import router as notifications_router
+
 main_router = APIRouter(prefix='/api/v1')
 
 main_router.include_router(
@@ -42,3 +45,5 @@ main_router.include_router(
     table_router,
     tags=['Столы'],
 )
+
+main_router.include_router(notifications_router)
