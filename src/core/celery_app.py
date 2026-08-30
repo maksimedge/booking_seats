@@ -11,7 +11,7 @@ booking_celery = Celery(
 
 booking_celery.conf.beat_schedule = {
     'some_periodic_task': {
-        'task': 'some_package.tasks.some_task',
-        'schedule': 60.0,
+        'task': 'notifications.tasks.periodic_test_task',
+        'schedule': 10.0,
     },
 }

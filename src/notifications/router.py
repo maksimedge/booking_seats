@@ -1,6 +1,8 @@
+from uuid import UUID
+
 from fastapi import APIRouter
 
-from notifications.tasks import send_notification_task
+from notifications.tasks import booking_created_notification_task
 
 router = APIRouter(
     prefix='/notifications',
@@ -9,9 +11,9 @@ router = APIRouter(
 
 
 @router.post('/test')
-async def test_notification(message: str) -> dict[str, str]:
+async def test_notification(uuid: UUID) -> dict[str, str]:
     """Test endpoint."""
-    task = send_notification_task.delay(message)
+    task = booking_created_notification_task.delay(uuid)
 
     return {
         'task_id': task.id,

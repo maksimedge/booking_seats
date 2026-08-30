@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,7 +13,7 @@ from core.db import get_session
 
 
 async def get_booking_for_current_user(
-    booking_id: int,
+    booking_id: UUID,
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_active_user),
 ) -> Booking:

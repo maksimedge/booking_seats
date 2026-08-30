@@ -34,3 +34,6 @@ alembic.ini
 
 #Images
 /images/
+
+
+celerybeat-schedule*

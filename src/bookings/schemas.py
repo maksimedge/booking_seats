@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from typing import List, Optional
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -14,8 +15,8 @@ from users.schemas import UserShortInfo
 class TableSlot(BaseModel):
     """Пара (стол + слот) для бронирования."""
 
-    table_id: int = Field(..., description='ID стола')
-    slot_id: int = Field(..., description='ID временного слота')
+    table_id: UUID = Field(..., description='ID стола')
+    slot_id: UUID = Field(..., description='ID временного слота')
 
 
 class TableSlotInfo(BaseModel):
@@ -42,7 +43,7 @@ def validate_tables_slots_list(v: List[TableSlot]) -> List[TableSlot]:
 class BookingCreate(BaseModel):
     """Схема для создания нового бронирования."""
 
-    cafe_id: int = Field(..., description='ID кафе')
+    cafe_id: UUID = Field(..., description='ID кафе')
     booking_date: date = Field(..., description='Дата бронирования (YYYY-MM-DD)')
     guest_number: int = Field(
         ...,
@@ -110,7 +111,7 @@ class BookingUpdate(BaseModel):
 class BookingInfo(BaseModel):
     """Схема для получения информации о бронировании."""
 
-    id: int = Field(..., description='ID бронирования')
+    id: UUID = Field(..., description='ID бронирования')
     user: UserShortInfo = Field(..., description='Пользователь')
     cafe: CafeShortInfo = Field(..., description='Кафе')
     booking_date: date = Field(..., description='Дата бронирования')

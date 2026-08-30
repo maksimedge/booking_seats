@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -8,7 +10,7 @@ from bookings.schemas import BookingCreate
 
 async def get_booking_with_relations(
     session: AsyncSession,
-    booking_id: int,
+    booking_id: UUID,
 ) -> Booking | None:
     """Получить бронирование по ID с подгрузкой связанных данных."""
     query = (
@@ -28,7 +30,7 @@ async def get_booking_with_relations(
 async def create_booking_record(
     session: AsyncSession,
     booking_data: BookingCreate,
-    user_id: int,
+    user_id: UUID,
 ) -> Booking:
     """Создать запись бронирования в БД."""
     booking = Booking(
@@ -42,11 +44,13 @@ async def create_booking_record(
     session.add(booking)
     await session.flush()
     for table_slot in booking_data.tables_slots:
-        session.add(BookingTableSlot(
-            booking_id=booking.id,
-            table_id=table_slot.table_id,
-            slot_id=table_slot.slot_id,
-        ))
+        session.add(
+            BookingTableSlot(
+                booking_id=booking.id,
+                table_id=table_slot.table_id,
+                slot_id=table_slot.slot_id,
+            ),
+        )
     await session.commit()
     return await get_booking_with_relations(session, booking.id)
 
@@ -62,11 +66,13 @@ async def update_booking_record(
         for table_slot in booking.tables_slots:
             session.delete(table_slot)
         for table_slot in tables_slots:
-            session.add(BookingTableSlot(
-                booking_id=booking.id,
-                table_id=table_slot['table_id'],
-                slot_id=table_slot['slot_id'],
-            ))
+            session.add(
+                BookingTableSlot(
+                    booking_id=booking.id,
+                    table_id=table_slot['table_id'],
+                    slot_id=table_slot['slot_id'],
+                ),
+            )
     for field, value in update_data.items():
         setattr(booking, field, value)
     await session.commit()
