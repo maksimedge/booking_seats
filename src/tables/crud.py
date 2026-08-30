@@ -2,6 +2,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from .models import Table
 from .schemas import TableCreate, TableUpdate
@@ -10,7 +11,9 @@ from core.logger import log_action, logger
 
 async def get_table_by_id(db: AsyncSession, table_id: int) -> Table | None:
     """Получить стол по ID."""
-    result = await db.execute(select(Table).where(Table.id == table_id))
+    result = await db.execute(
+        select(Table).options(selectinload(Table.cafe)).where(Table.id == table_id),
+    )
     return result.scalar_one_or_none()
 
 
@@ -20,7 +23,7 @@ async def get_tables_by_cafe(
     only_active: bool = True,
 ) -> list[Table]:
     """Получить все столы кафе."""
-    query = select(Table).where(Table.cafe_id == cafe_id)
+    query = select(Table).options(selectinload(Table.cafe)).where(Table.cafe_id == cafe_id)
     if only_active:
         query = query.where(Table.is_active)
     result = await db.execute(query)
