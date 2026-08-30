@@ -20,6 +20,7 @@ router = APIRouter(
 @router.get(
     '/{cafe_id}/tables',
     response_model=List[TableResponse],
+    summary='Список столов в кафе',
 )
 async def get_tables(
     cafe_id: UUID,
@@ -33,6 +34,7 @@ async def get_tables(
 @router.get(
     '/{cafe_id}/tables/{table_id}',
     response_model=TableResponse,
+    summary='Информация о столе в кафе по его ID',
 )
 async def get_table(
     cafe_id: UUID,
@@ -58,6 +60,7 @@ async def get_table(
     '/{cafe_id}/tables',
     response_model=TableResponse,
     status_code=status.HTTP_201_CREATED,
+    summary='Новый стол в кафе',
 )
 async def create_table(
     cafe_id: UUID,
@@ -84,6 +87,7 @@ async def create_table(
 @router.patch(
     '/{cafe_id}/tables/{table_id}',
     response_model=TableResponse,
+    summary='Обновление информации о столе в кафе по его ID',
 )
 async def update_table(
     cafe_id: UUID,

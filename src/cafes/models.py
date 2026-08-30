@@ -1,5 +1,5 @@
-from typing import Optional
-from uuid import UUID, uuid4
+from typing import TYPE_CHECKING, Optional
+from uuid import UUID
 
 from sqlalchemy import Boolean, Column, ForeignKey, String, Table, Text
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
@@ -10,15 +10,23 @@ from cafes.constants import (
     CAFE_NAME_MAX_LENGTH,
     CAFE_PHONE_MAX_LENGTH,
 )
-from users.models import User
 
 from core.base_model import Base
+
+if TYPE_CHECKING:
+    from time_slots.models import TimeSlot
+    from users.models import User
 
 cafe_managers = Table(
     'cafe_managers',
     Base.metadata,
     Column('cafe_id', PG_UUID(as_uuid=True), ForeignKey('cafes.id', ondelete='CASCADE'), primary_key=True),
-    Column('user_id', PG_UUID, ForeignKey('users.id', ondelete='CASCADE'), primary_key=True),
+    Column(
+        'user_id',
+        PG_UUID(as_uuid=True),
+        ForeignKey('users.id', ondelete='CASCADE'),
+        primary_key=True,
+    ),
 )
 
 
@@ -27,7 +35,6 @@ class Cafe(Base):
 
     __tablename__ = 'cafes'
 
-    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(CAFE_NAME_MAX_LENGTH), nullable=False, index=True)
     address: Mapped[str] = mapped_column(String(CAFE_ADDRESS_MAX_LENGTH), nullable=False)
     phone: Mapped[Optional[str]] = mapped_column(String(CAFE_PHONE_MAX_LENGTH), nullable=True)
@@ -41,7 +48,7 @@ class Cafe(Base):
         lazy='selectin',
     )
 
-    time_slots = relationship(
+    time_slots: Mapped[list['TimeSlot']] = relationship(
         'TimeSlot',
         back_populates='cafe',
         lazy='selectin',

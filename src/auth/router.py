@@ -14,7 +14,11 @@ from core.security import create_access_token, verify_password
 router = APIRouter(prefix='/auth')
 
 
-@router.post('/login', response_model=AuthToken)
+@router.post(
+    '/login',
+    response_model=AuthToken,
+    summary='Получение токена авторизации',
+)
 async def login(
     auth_data: AuthData,
     db: Annotated[AsyncSession, Depends(get_session)],

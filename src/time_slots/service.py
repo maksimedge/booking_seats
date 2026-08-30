@@ -9,14 +9,18 @@ from time_slots.models import TimeSlot
 from time_slots.schemas import TimeSlotCreate, TimeSlotUpdate
 
 
-async def create_time_slot(db: AsyncSession, slot_data: TimeSlotCreate) -> TimeSlot:
+async def create_time_slot(
+    db: AsyncSession,
+    cafe_id: UUID,
+    slot_data: TimeSlotCreate,
+) -> TimeSlot:
     """Создание нового временного слота для кафе."""
-    cafe = await get_cafe_by_id(db, slot_data.cafe_id)
+    cafe = await get_cafe_by_id(db, cafe_id)
     if not cafe:
-        raise ValueError(f'Cafe with ID {slot_data.cafe_id} not found')
+        raise ValueError(f'Cafe with ID {cafe_id} not found')
 
     new_slot = TimeSlot(
-        cafe_id=slot_data.cafe_id,
+        cafe_id=cafe_id,
         start_time=slot_data.start_time,
         end_time=slot_data.end_time,
         max_bookings=slot_data.max_bookings,
