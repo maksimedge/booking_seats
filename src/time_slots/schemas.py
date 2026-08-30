@@ -14,10 +14,12 @@ class TimeSlotBase(BaseModel):
     max_bookings: int = Field(default=1, ge=1)
 
 
-class TimeSlotCreate(TimeSlotBase):
+class TimeSlotCreate(BaseModel):
     """Модель для создания временного слота."""
 
-    pass
+    start_time: time
+    end_time: time
+    max_bookings: int = Field(default=1, ge=1)
 
 
 class TimeSlotUpdate(BaseModel):

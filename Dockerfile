@@ -2,7 +2,7 @@ FROM python:3.12-slim
 
 SHELL ["/bin/sh", "-exc"]
 
-RUN apt-get update && apt-get upgrade -y && apt-get install --quiet --no-install-recommends --assume-yes netcat-traditional
+RUN apt-get update && apt-get upgrade -y && apt-get install --quiet --no-install-recommends --assume-yes netcat-traditional bash
 
 COPY --link --from=ghcr.io/astral-sh/uv:0.4 /uv /usr/local/bin/uv
 
@@ -33,12 +33,10 @@ WORKDIR /app
 
 COPY --chown=$USER_ID:$GROUP_ID pyproject.toml uv.lock entrypoint.sh /app/
 
-RUN <<EOF
-uv sync \
-  --no-dev \
-  --no-install-project \
-  --frozen
-EOF
+RUN uv sync \
+    --no-dev \
+    --no-install-project \
+    --frozen
 
 # PYTHONOPTIMIZE — указывает интерпретатору Python, что нужно использовать ранее скомпилированные файлы из  директории `__pycache__` с  суффиксом `opt-1` в имени.
 # PYTHONFAULTHANDLER — устанавливает обработчики ошибок для дополнительных сигналов.
@@ -52,6 +50,11 @@ ENV PATH=/app/.venv/bin:$PATH \
 COPY --chown=$USER_ID:$GROUP_ID ./src /app
 
 EXPOSE 8000/tcp
+
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
+
 
 # ENTRYPOINT ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 ENTRYPOINT [ "/bin/sh", "entrypoint.sh" ]

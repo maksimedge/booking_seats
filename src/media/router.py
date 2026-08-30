@@ -34,7 +34,7 @@ async def upload_file(file: Annotated[UploadFile, File()], session: SessionDep) 
 
 @router.get(
     '/media/{media_id}',
-    summary='Возвращает изображение в бинарном формате.',
+    summary='Возвращает изображение в бинарном формате',
     description='Возвращает изображение по айди.',
 )
 async def get_image_by_id(media_id: uuid.UUID, session: SessionDep) -> FileResponse:
