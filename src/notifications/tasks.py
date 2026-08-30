@@ -21,6 +21,10 @@ def periodic_test_task() -> None:
 @booking_celery.task
 def booking_created_notification_task(booking_id: UUID) -> None:
     """Отправляет уведомление менеджерам кафе после создания бронирования."""
-    asyncio.run(send_notification(booking_id))
-    # send_notification(booking_id)
-    print('Im here')
+    asyncio.run(send_notification(booking_id, None))
+
+
+@booking_celery.task
+def booking_updated_notification_task(booking_id: UUID) -> None:
+    """Отправляет уведомление менеджерам кафе после обновления бронирования."""
+    asyncio.run(send_notification(booking_id, True))

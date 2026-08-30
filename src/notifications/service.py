@@ -8,9 +8,10 @@ from cafes.models import Cafe
 from notifications.email import send_email
 
 from core.db import session_maker
+from core.logger import logger
 
 
-async def send_notification(booking_id: UUID) -> None:
+async def send_notification(booking_id: UUID, updated: bool | None) -> None:
     """Send notifications."""
     async with session_maker() as session:
         result = await session.execute(
@@ -20,4 +21,7 @@ async def send_notification(booking_id: UUID) -> None:
         )
         booking = result.scalar_one_or_none()
         for manager in booking.cafe.managers:
-            send_email(booking)
+            if manager.email is None:
+                logger.warning('У менеджера {} не указан email', manager.id)
+                continue
+            send_email(manager.email, booking, updated)
