@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -8,7 +10,7 @@ from bookings.schemas import BookingCreate
 
 async def get_booking_with_relations(
     session: AsyncSession,
-    booking_id: int,
+    booking_id: UUID,
 ) -> Booking | None:
     """Получить бронирование по ID с подгрузкой связанных данных."""
     query = (
@@ -25,10 +27,26 @@ async def get_booking_with_relations(
     return result.scalar_one_or_none()
 
 
+async def get_bookings_by_user(session: AsyncSession, user_id: UUID) -> list[Booking]:
+    """Получить брони пользователя."""
+    query = (
+        select(Booking)
+        .where(Booking.user_id == user_id)
+        .options(
+            selectinload(Booking.user),
+            selectinload(Booking.cafe),
+            selectinload(Booking.tables_slots).selectinload(BookingTableSlot.table),
+            selectinload(Booking.tables_slots).selectinload(BookingTableSlot.slot),
+        )
+    )
+    result = await session.execute(query)
+    return list(result.scalars().all())
+
+
 async def create_booking_record(
     session: AsyncSession,
     booking_data: BookingCreate,
-    user_id: int,
+    user_id: UUID,
 ) -> Booking:
     """Создать запись бронирования в БД."""
     booking = Booking(
@@ -69,15 +87,5 @@ async def update_booking_record(
             ))
     for field, value in update_data.items():
         setattr(booking, field, value)
-    await session.commit()
-    return await get_booking_with_relations(session, booking.id)
-
-
-async def cancel_booking_record(
-    session: AsyncSession,
-    booking: Booking,
-) -> Booking:
-    """Отменить бронирование (установить статус CANCELED)."""
-    booking.status = BookingStatus.CANCELED
     await session.commit()
     return await get_booking_with_relations(session, booking.id)
