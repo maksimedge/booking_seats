@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -9,7 +11,7 @@ from .schemas import TableCreate, TableUpdate
 from core.logger import log_action, logger
 
 
-async def get_table_by_id(db: AsyncSession, table_id: int) -> Table | None:
+async def get_table_by_id(db: AsyncSession, table_id: UUID) -> Table | None:
     """Получить стол по ID."""
     result = await db.execute(
         select(Table).options(selectinload(Table.cafe)).where(Table.id == table_id),
@@ -19,7 +21,7 @@ async def get_table_by_id(db: AsyncSession, table_id: int) -> Table | None:
 
 async def get_tables_by_cafe(
     db: AsyncSession,
-    cafe_id: int,
+    cafe_id: UUID,
     only_active: bool = True,
 ) -> list[Table]:
     """Получить все столы кафе."""
@@ -30,7 +32,7 @@ async def get_tables_by_cafe(
     return result.scalars().all()
 
 
-async def create_table(db: AsyncSession, cafe_id: int, table_data: TableCreate) -> Table:
+async def create_table(db: AsyncSession, cafe_id: UUID, table_data: TableCreate) -> Table:
     """Создать новый стол."""
     new_table = Table(
         cafe_id=cafe_id,
@@ -71,7 +73,7 @@ async def create_table(db: AsyncSession, cafe_id: int, table_data: TableCreate) 
 
 async def update_table(
     db: AsyncSession,
-    table_id: int,
+    table_id: UUID,
     table_update: TableUpdate,
 ) -> Table | None:
     """Обновить данные стола."""

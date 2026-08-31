@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -7,7 +9,7 @@ from users.models import User
 
 async def check_manager_cafe_access(
     db: AsyncSession,
-    cafe_id: int,
+    cafe_id: UUID,
     current_user: User,
 ) -> Cafe:
     """Проверяет, что менеджер имеет доступ к кафе.

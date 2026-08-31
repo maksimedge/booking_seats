@@ -1,4 +1,5 @@
 from typing import List, Optional
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,7 +25,7 @@ router = APIRouter(
     summary='Список столов в кафе',
 )
 async def get_tables(
-    cafe_id: int,
+    cafe_id: UUID,
     only_active: Optional[bool] = Query(True, description='Только активные'),
     db: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_active_user),
@@ -47,8 +48,8 @@ async def get_tables(
     summary='Информация о столе в кафе по его ID',
 )
 async def get_table(
-    cafe_id: int,
-    table_id: int,
+    cafe_id: UUID,
+    table_id: UUID,
     db: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_active_user),
 ) -> TableResponse:
@@ -83,7 +84,7 @@ async def get_table(
     summary='Новый стол в кафе',
 )
 async def create_table(
-    cafe_id: int,
+    cafe_id: UUID,
     table_data: TableCreate,
     db: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_manager_or_admin),
@@ -99,8 +100,8 @@ async def create_table(
     summary='Обновление информации о столе в кафе по его ID',
 )
 async def update_table(
-    cafe_id: int,
-    table_id: int,
+    cafe_id: UUID,
+    table_id: UUID,
     update_data: TableUpdate,
     db: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_manager_or_admin),
