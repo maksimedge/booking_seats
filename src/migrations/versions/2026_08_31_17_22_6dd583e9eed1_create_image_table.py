@@ -1,8 +1,8 @@
-"""create all tables
+"""create image table
 
-Revision ID: 24768cb5043d
+Revision ID: 6dd583e9eed1
 Revises:
-Create Date: 2026-08-31 17:11:45.733305
+Create Date: 2026-08-31 17:22:37.221193
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '24768cb5043d'
+revision: str = '6dd583e9eed1'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -43,17 +43,6 @@ def upgrade() -> None:
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('tables',
-    sa.Column('cafe_id', sa.Uuid(), nullable=False),
-    sa.Column('seats_count', sa.Integer(), nullable=False),
-    sa.Column('description', sa.Text(), nullable=True),
-    sa.Column('id', sa.UUID(), nullable=False),
-    sa.Column('is_active', sa.BOOLEAN(), server_default='true', nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_index(op.f('ix_tables_cafe_id'), 'tables', ['cafe_id'], unique=False)
     op.create_table('users',
     sa.Column('username', sa.String(length=100), nullable=False),
     sa.Column('password_hash', sa.String(length=255), nullable=False),
@@ -96,6 +85,18 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('cafe_id', 'user_id')
     )
+    op.create_table('tables',
+    sa.Column('cafe_id', sa.Uuid(), nullable=False),
+    sa.Column('seat_number', sa.Integer(), nullable=False),
+    sa.Column('description', sa.Text(), nullable=True),
+    sa.Column('id', sa.UUID(), nullable=False),
+    sa.Column('is_active', sa.BOOLEAN(), server_default='true', nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.ForeignKeyConstraint(['cafe_id'], ['cafes.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_tables_cafe_id'), 'tables', ['cafe_id'], unique=False)
     op.create_table('time_slots',
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('cafe_id', sa.UUID(), nullable=False),
@@ -131,11 +132,11 @@ def downgrade() -> None:
     op.drop_table('booking_tables_slots')
     op.drop_index(op.f('ix_time_slots_is_active'), table_name='time_slots')
     op.drop_table('time_slots')
+    op.drop_index(op.f('ix_tables_cafe_id'), table_name='tables')
+    op.drop_table('tables')
     op.drop_table('cafe_managers')
     op.drop_table('bookings')
     op.drop_table('users')
-    op.drop_index(op.f('ix_tables_cafe_id'), table_name='tables')
-    op.drop_table('tables')
     op.drop_table('images')
     op.drop_index(op.f('ix_cafes_name'), table_name='cafes')
     op.drop_index(op.f('ix_cafes_is_active'), table_name='cafes')
