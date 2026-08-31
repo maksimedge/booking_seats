@@ -1,6 +1,7 @@
 import enum
 from datetime import date
 from typing import List, Optional
+from uuid import UUID
 
 from sqlalchemy import CheckConstraint, Date, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -22,15 +23,15 @@ class BookingTableSlot(Base):
 
     __tablename__ = 'booking_tables_slots'
 
-    booking_id: Mapped[int] = mapped_column(
+    booking_id: Mapped[UUID] = mapped_column(
         ForeignKey('bookings.id', ondelete='RESTRICT'),
         primary_key=True,
     )
-    table_id: Mapped[int] = mapped_column(
+    table_id: Mapped[UUID] = mapped_column(
         ForeignKey('tables.id', ondelete='RESTRICT'),
         primary_key=True,
     )
-    slot_id: Mapped[int] = mapped_column(
+    slot_id: Mapped[UUID] = mapped_column(
         ForeignKey('time_slots.id', ondelete='RESTRICT'),
         primary_key=True,
     )
@@ -66,8 +67,8 @@ class Booking(Base):
 
     __tablename__ = 'bookings'
 
-    user_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='RESTRICT'), nullable=False)
-    cafe_id: Mapped[int] = mapped_column(ForeignKey('cafes.id', ondelete='RESTRICT'), nullable=False)
+    user_id: Mapped[UUID] = mapped_column(ForeignKey('users.id', ondelete='RESTRICT'), nullable=False)
+    cafe_id: Mapped[UUID] = mapped_column(ForeignKey('cafes.id', ondelete='RESTRICT'), nullable=False)
 
     booking_date: Mapped[date] = mapped_column(Date, nullable=False)
     guest_number: Mapped[int] = mapped_column(Integer, nullable=False)
