@@ -1,35 +1,44 @@
+from uuid import UUID
+
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from .models import Table
 from .schemas import TableCreate, TableUpdate
 from core.logger import log_action, logger
 
 
-async def get_table_by_id(db: AsyncSession, table_id: int) -> Table | None:
+async def get_table_by_id(db: AsyncSession, table_id: UUID) -> Table | None:
     """Получить стол по ID."""
-    result = await db.execute(select(Table).where(Table.id == table_id))
+    result = await db.execute(
+        select(Table).options(selectinload(Table.cafe)).where(Table.id == table_id),
+    )
     return result.scalar_one_or_none()
 
 
 async def get_tables_by_cafe(
     db: AsyncSession,
-    cafe_id: int,
+    cafe_id: UUID,
     only_active: bool = True,
 ) -> list[Table]:
     """Получить все столы кафе."""
-    query = select(Table).where(Table.cafe_id == cafe_id)
+    query = select(Table).options(selectinload(Table.cafe)).where(Table.cafe_id == cafe_id)
     if only_active:
         query = query.where(Table.is_active)
     result = await db.execute(query)
     return result.scalars().all()
 
 
-async def create_table(db: AsyncSession, table_data: TableCreate) -> Table:
+async def create_table(db: AsyncSession, cafe_id: UUID, table_data: TableCreate) -> Table:
     """Создать новый стол."""
-    new_table = Table(**table_data.model_dump())
+    new_table = Table(
+        cafe_id=cafe_id,
+        seat_number=table_data.seat_number,
+        description=table_data.description,
+    )
     db.add(new_table)
     try:
         await db.commit()
@@ -37,8 +46,8 @@ async def create_table(db: AsyncSession, table_data: TableCreate) -> Table:
         log_action(
             'Создана запись',
             table='tables',
-            cafe_id=table_data.cafe_id,
-            seats_count=table_data.seats_count,
+            cafe_id=cafe_id,
+            seat_number=table_data.seat_number,
         )
         return new_table
 
@@ -48,23 +57,23 @@ async def create_table(db: AsyncSession, table_data: TableCreate) -> Table:
         error_msg = str(e).lower()
         if 'foreign key' in error_msg:
             logger.warning(
-                f'Невозможно создать стол: кафе id={table_data.cafe_id} не найдено',
+                f'Невозможно создать стол: кафе id={cafe_id} не найдено',
             )
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f'Cafe with id {table_data.cafe_id} not found',
+                detail=f'Кафе с id {cafe_id} не найдено',
             )
 
         logger.error(f'Ошибка при создании стола: {str(e)}')
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Database integrity error',
+            detail='Ошибка базы данных',
         )
 
 
 async def update_table(
     db: AsyncSession,
-    table_id: int,
+    table_id: UUID,
     table_update: TableUpdate,
 ) -> Table | None:
     """Обновить данные стола."""
@@ -73,9 +82,7 @@ async def update_table(
         logger.warning(f'Стол id={table_id} не найден')
         return None
 
-    old_seats_count = table.seats_count
-    old_cafe_id = table.cafe_id
-
+    old_seat_number = table.seat_number
     update_data = table_update.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(table, key, value)
@@ -84,13 +91,12 @@ async def update_table(
         await db.commit()
         await db.refresh(table)
         changes = []
-        if 'seats_count' in update_data and old_seats_count != table.seats_count:
-            changes.append(f'Изменено количество мест: {old_seats_count} -> {table.seats_count}')
-        if 'cafe_id' in update_data and old_cafe_id != table.cafe_id:
-            changes.append(f'Изменен кафе: {old_cafe_id} -> {table.cafe_id}')
+        if 'seat_number' in update_data and old_seat_number != table.seat_number:
+            changes.append(f'Изменено количество мест: {old_seat_number} -> {table.seat_number}')
         if 'description' in update_data:
             changes.append('Обновлено описание')
-
+        if 'is_active' in update_data:
+            changes.append(f'Статус активности: {"активен" if table.is_active else "неактивен"}')
         if changes:
             for change in changes:
                 log_action(
@@ -117,9 +123,9 @@ async def update_table(
         if 'foreign key' in error_msg:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f'Cafe with id {table_update.cafe_id} not found',
+                detail=f'Кафе с id {table_update.cafe_id} не найдено',
             )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Database integrity error',
+            detail='Ошибка базы данных',
         )
