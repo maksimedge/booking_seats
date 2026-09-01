@@ -10,6 +10,7 @@ async def create_media(media_path: str, session: AsyncSession) -> Image:
     """Записываем адрес файла в БД."""
     image = Image(path=media_path)
     session.add(image)
+    await session.commit()
     return image
 
 
