@@ -23,8 +23,20 @@ async def get_session() -> AsyncIterator[AsyncSession]:
         try:
             yield session
             await session.commit()
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             await session.rollback()
-            raise HTTPException(status_code=500, detail='Ошибка при работе с БД')
+            print('=' * 80)
+            print('🔥 ОШИБКА БД:')
+            print(f'Тип: {type(e).__name__}')
+            print(f'Текст: {str(e)}')
+            print('-' * 80)
+            import traceback
+
+            traceback.print_exc()
+            print('=' * 80)
+            raise HTTPException(
+                status_code=500,
+                detail=f'Ошибка при работе с БД: {str(e)}',
+            )
         finally:
             await session.close()

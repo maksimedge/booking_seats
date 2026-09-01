@@ -27,6 +27,6 @@ async def get_booking_for_current_user(
     if booking.user_id != current_user.id and current_user.role not in STAFF_USER:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail='Нет доступа к данному брон72ированию',
+            detail='Нет доступа к данному бронированию',
         )
     return booking

@@ -1,5 +1,9 @@
-from sqlalchemy import CheckConstraint, Enum, String
-from sqlalchemy.orm import Mapped, mapped_column
+from typing import TYPE_CHECKING, Optional
+from uuid import UUID
+
+from sqlalchemy import CheckConstraint, Enum, ForeignKey, String
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from users.constants import (
     EMAIL_MAX_LENGTH,
@@ -11,6 +15,9 @@ from users.constants import (
 )
 
 from core.base_model import Base
+
+if TYPE_CHECKING:
+    from cafes.models import Cafe
 
 
 class User(Base):
@@ -53,4 +60,16 @@ class User(Base):
         default=UserRole.USER,
         server_default=UserRole.USER.value,
         nullable=False,
+    )
+
+    cafe_id: Mapped[Optional[UUID]] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey('cafes.id', ondelete='SET NULL'),
+        nullable=True,
+    )
+
+    cafe: Mapped[Optional['Cafe']] = relationship(
+        'Cafe',
+        back_populates='managers',
+        lazy='selectin',
     )
