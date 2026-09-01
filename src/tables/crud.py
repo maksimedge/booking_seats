@@ -43,6 +43,8 @@ async def create_table(db: AsyncSession, cafe_id: UUID, table_data: TableCreate)
     try:
         await db.commit()
         await db.refresh(new_table)
+        await db.refresh(new_table, attribute_names=['cafe'])
+
         log_action(
             'Создана запись',
             table='tables',
@@ -90,6 +92,8 @@ async def update_table(
     try:
         await db.commit()
         await db.refresh(table)
+        await db.refresh(table, attribute_names=['cafe'])
+
         changes = []
         if 'seat_number' in update_data and old_seat_number != table.seat_number:
             changes.append(f'Изменено количество мест: {old_seat_number} -> {table.seat_number}')
