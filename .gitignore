@@ -28,7 +28,7 @@ logs/
 *.log
 
 # Migrations (local)
-# src/migrations/versions/
+src/migrations/versions/
 alembic/
 alembic.ini
 
