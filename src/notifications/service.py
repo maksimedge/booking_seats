@@ -1,9 +1,10 @@
+from datetime import date, datetime, timedelta
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from bookings.models import Booking
+from bookings.models import Booking, BookingStatus, BookingTableSlot
 from cafes.models import Cafe
 from notifications.email import send_email
 
@@ -25,3 +26,24 @@ async def send_notification(booking_id: UUID, updated: bool | None) -> None:
                 logger.warning('У менеджера {} не указан email', manager.id)
                 continue
             send_email(manager.email, booking, updated)
+
+
+async def find_booking_for_notification() -> None:
+    """Find booking."""
+    today = date.today()
+    async with celery_session_maker() as session:
+        result = await session.execute(
+            select(Booking)
+            .options(selectinload(Booking.tables_slots).selectinload(BookingTableSlot.slot))
+            .where(Booking.status == BookingStatus.BOOKING)
+            .where(Booking.booking_date >= today),
+        )
+        bookings = result.scalars().all()
+        for booking in bookings:
+            for time_slot in booking.tables_slots:
+                # start_time = time(time_slot.slot.start_time)
+                booking_time = datetime.combine(booking.booking_date, time_slot.slot.start_time)
+                # print(booking_time > datetime.now())
+                print(booking_time)
+                reminder_time = booking_time - timedelta(hours=1)
+                print(reminder_time)
