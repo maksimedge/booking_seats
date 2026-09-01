@@ -26,8 +26,8 @@ async def get_tables_by_cafe(
 ) -> list[Table]:
     """Получить все столы кафе."""
     query = select(Table).options(selectinload(Table.cafe)).where(Table.cafe_id == cafe_id)
-    if only_active:
-        query = query.where(Table.is_active)
+    if only_active is not None:
+        query = query.where(Table.is_active == only_active)
     result = await db.execute(query)
     return result.scalars().all()
 

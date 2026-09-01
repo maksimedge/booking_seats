@@ -9,7 +9,7 @@ class Table(Base):
 
     __tablename__ = 'tables'
 
-    cafe_id = Column(Uuid, ForeignKey('cafes.id', ondelete='CASCADE'), nullable=False, index=True)
+    cafe_id = Column(Uuid, ForeignKey('cafes.id'), nullable=False, index=True)
     seat_number = Column(Integer, nullable=False)
     description = Column(Text, nullable=True)
     cafe = relationship('Cafe', lazy='joined')
