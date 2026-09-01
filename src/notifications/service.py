@@ -7,13 +7,13 @@ from bookings.models import Booking
 from cafes.models import Cafe
 from notifications.email import send_email
 
-from core.db import session_maker
+from core.celery_db import celery_session_maker
 from core.logger import logger
 
 
 async def send_notification(booking_id: UUID, updated: bool | None) -> None:
     """Send notifications."""
-    async with session_maker() as session:
+    async with celery_session_maker() as session:
         result = await session.execute(
             select(Booking)
             .options(selectinload(Booking.cafe).selectinload(Cafe.managers))

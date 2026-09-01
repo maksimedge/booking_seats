@@ -11,10 +11,10 @@ from time_slots.models import TimeSlot
 from time_slots.schemas import TimeSlotCreate, TimeSlotUpdate
 
 
-def _parse_time(time_str: str) -> time:
+def _parse_time(time_str: time) -> time:
     """Преобразует строку в объект time."""
     try:
-        return time.fromisoformat(time_str)
+        return time.fromisoformat(str(time_str))
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
