@@ -30,6 +30,12 @@ def booking_updated_notification_task(booking_id: UUID) -> None:
 
 
 @booking_celery.task
-def check_booking_reminders_task(booking_id: UUID) -> None:
+def check_booking_reminders_task() -> None:
+    """Check notifications."""
+    asyncio.run(find_booking_for_notification())
+
+
+@booking_celery.task
+def test_booking_reminders_task() -> None:
     """Check notifications."""
     asyncio.run(find_booking_for_notification())
