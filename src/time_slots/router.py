@@ -41,7 +41,12 @@ async def get_time_slots(
 ) -> List[TimeSlotInfo]:
     """Получение списка временных слотов."""
     logger.info(f'Fetching time slots for cafe_id={cafe_id}')
-    return await service.get_time_slots_by_cafe(db, cafe_id, show_active)
+    return await service.get_time_slots_by_cafe(
+        db,
+        cafe_id,
+        show_active,
+        current_user,
+    )
 
 
 @router.post(

@@ -18,7 +18,16 @@ class TimeSlotBase(BaseModel):
 class TimeSlotCreate(TimeSlotBase):
     """Схема создания временного слота."""
 
-    pass
+    start_time: str = Field(
+        ...,
+        pattern=r'^([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)$',
+        description='Время начала в формате HH:MM:SS',
+    )
+    end_time: str = Field(
+        ...,
+        pattern=r'^([0-1]\d|2[0-3]):([0-5]\d):([0-5]\d)$',
+        description='Время окончания в формате HH:MM:SS',
+    )
 
 
 class TimeSlotUpdate(BaseModel):

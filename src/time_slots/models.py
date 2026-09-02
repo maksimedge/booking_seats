@@ -1,10 +1,12 @@
 from datetime import time
 from typing import TYPE_CHECKING, Optional
-from uuid import UUID, uuid4
+from uuid import UUID
 
-from sqlalchemy import ForeignKey, String, Time
+from sqlalchemy import ForeignKey, Integer, String, Time
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from time_slots.constants import TIME_SLOT_MAX_BOOKINGS
 
 from core.base_model import Base
 
@@ -17,17 +19,16 @@ class TimeSlot(Base):
 
     __tablename__ = 'time_slots'
 
-    id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
-        primary_key=True,
-        default=uuid4,
-    )
     cafe_id: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True),
         ForeignKey('cafes.id', ondelete='CASCADE'),
     )
     start_time: Mapped[time] = mapped_column(Time, nullable=False)
     end_time: Mapped[time] = mapped_column(Time, nullable=False)
+    max_bookings: Mapped[int] = mapped_column(
+        Integer,
+        default=TIME_SLOT_MAX_BOOKINGS,
+    )
     description: Mapped[Optional[str]] = mapped_column(
         String(255),
         nullable=True,
