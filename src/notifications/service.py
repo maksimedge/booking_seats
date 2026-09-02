@@ -34,16 +34,24 @@ async def find_booking_for_notification() -> None:
     async with celery_session_maker() as session:
         result = await session.execute(
             select(Booking)
-            .options(selectinload(Booking.tables_slots).selectinload(BookingTableSlot.slot))
+            .options(
+                selectinload(Booking.tables_slots).selectinload(BookingTableSlot.slot),
+                selectinload(Booking.user),
+            )
             .where(Booking.status == BookingStatus.BOOKING)
             .where(Booking.booking_date >= today),
         )
         bookings = result.scalars().all()
+        reminder_sent = True
         for booking in bookings:
             for time_slot in booking.tables_slots:
                 # start_time = time(time_slot.slot.start_time)
                 booking_time = datetime.combine(booking.booking_date, time_slot.slot.start_time)
                 # print(booking_time > datetime.now())
-                print(booking_time)
+                print(f'booking_time: {type(booking_time)}')
                 reminder_time = booking_time - timedelta(hours=1)
-                print(reminder_time)
+                print(f'booking_time: {type(reminder_time)}')
+                print(booking.user.email)
+                # print(f'booking_time: {type(datetime.now())}')
+                if datetime.now() < reminder_time and reminder_sent:
+                    print(f'I need to send reminder to {booking.user.email}')

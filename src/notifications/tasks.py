@@ -11,10 +11,10 @@ from core.celery_app import booking_celery
 #     send_notification(value)
 
 
-# @booking_celery.task
-# def periodic_test_task() -> None:
-#     """Beat task."""
-#     print('Celery Beat task выполнена')
+@booking_celery.task
+def periodic_test_task() -> None:
+    """Beat task."""
+    print('Celery Beat task выполнена')
 
 
 @booking_celery.task
