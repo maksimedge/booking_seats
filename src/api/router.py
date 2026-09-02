@@ -13,21 +13,24 @@ from api import (
 main_router = APIRouter(prefix='/api/v1')
 
 main_router.include_router(
-    media_router,
-    tags=['Медиа'],
+    users_router,
+    tags=['Аутентификация'],
 )
+
 main_router.include_router(
     auth_router,
     tags=['Пользователи'],
 )
 main_router.include_router(
-    users_router,
-    tags=['Аутентификация'],
-)
-main_router.include_router(
     cafes_router,
     tags=['Кафе'],
 )
+
+main_router.include_router(
+    table_router,
+    tags=['Столы'],
+)
+
 main_router.include_router(
     time_slots_router,
     tags=['Временные слоты'],
@@ -39,6 +42,6 @@ main_router.include_router(
 )
 
 main_router.include_router(
-    table_router,
-    tags=['Столы'],
+    media_router,
+    tags=['Медиа'],
 )
