@@ -32,22 +32,15 @@ async def create_cafe(
         )
 
     result_managers: Result = await db.execute(
-        select(User).where(User.id.in_(cafe_data.managers_id)),
+        select(User).where(User.id.in_(cafe_data.managers_id)).where(User.cafe_id.is_(None)),
     )
     managers: List[User] = result_managers.scalars().all()
 
     if len(managers) != len(cafe_data.managers_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Один или несколько менеджеров не найдены',
+            detail='Один или несколько менеджеров не найдены или уже привязаны',
         )
-
-    for manager in managers:
-        if manager.cafe_id is not None:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f'Менеджер {manager.id} уже привязан к другому кафе',
-            )
 
     new_cafe: Cafe = Cafe(
         name=cafe_data.name,
@@ -73,20 +66,21 @@ async def get_cafes(
     show_active: Optional[bool] = None,
     current_user: Optional[User] = None,
 ) -> List[Cafe]:
-    """Получение списка кафе.
-
-    Для администраторов и менеджеров — все кафе (с возможностью выбора).
-    Для пользователей — только активные.
-    """
+    """Получение списка кафе с учётом роли пользователя."""
     query = select(Cafe)
 
     if current_user is None or current_user.role == UserRole.USER:
         query = query.where(Cafe.is_active)
     elif current_user.role == UserRole.MANAGER:
-        query = query.where(Cafe.is_active)
+        if show_active is not None:
+            query = query.where(Cafe.is_active == show_active)
+        else:
+            query = query.where(Cafe.is_active)
     elif current_user.role == UserRole.ADMIN:
         if show_active is not None:
             query = query.where(Cafe.is_active == show_active)
+    else:
+        query = query.where(Cafe.is_active)
 
     result: Result = await db.execute(query)
     return result.scalars().all()
@@ -129,9 +123,19 @@ async def update_cafe(
 
     if update_data.managers_id is not None:
         result = await db.execute(
-            select(User).where(User.id.in_(update_data.managers_id)),
+            select(User)
+            .where(User.id.in_(update_data.managers_id))
+            .where(
+                (User.cafe_id.is_(None)) | (User.cafe_id == cafe.id),
+            ),
         )
         managers: List[User] = result.scalars().all()
+
+        if len(managers) != len(update_data.managers_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Один или несколько менеджеров не найдены или уже привязаны',
+            )
 
         old_managers_result = await db.execute(
             select(User).where(User.cafe_id == cafe.id),
