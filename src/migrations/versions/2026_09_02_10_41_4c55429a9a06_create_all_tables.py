@@ -1,8 +1,8 @@
-"""update tables model
+"""create all tables
 
-Revision ID: 23fcbcad2e9e
+Revision ID: 4c55429a9a06
 Revises:
-Create Date: 2026-09-02 09:16:23.277501
+Create Date: 2026-09-02 10:41:10.868101
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '23fcbcad2e9e'
+revision: str = '4c55429a9a06'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -57,12 +57,13 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_tables_cafe_id'), 'tables', ['cafe_id'], unique=False)
     op.create_table('time_slots',
-    sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('cafe_id', sa.UUID(), nullable=False),
     sa.Column('start_time', sa.Time(), nullable=False),
     sa.Column('end_time', sa.Time(), nullable=False),
+    sa.Column('max_bookings', sa.Integer(), nullable=False),
     sa.Column('description', sa.String(length=255), nullable=True),
     sa.Column('is_active', sa.Boolean(), nullable=False),
+    sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['cafe_id'], ['cafes.id'], ondelete='CASCADE'),
