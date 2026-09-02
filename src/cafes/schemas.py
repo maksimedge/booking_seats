@@ -43,9 +43,11 @@ class CafeCreate(CafeBase):
 
     @model_validator(mode='after')
     def validate_managers(self) -> Self:
-        """Проверяет, что передан хотя бы один менеджер."""
+        """Проверяет, что передан хотя бы один менеджер и нет дубликатов."""
         if not self.managers_id:
             raise ValueError('Кафе должно иметь хотя бы одного менеджера')
+        if len(self.managers_id) != len(set(self.managers_id)):
+            raise ValueError('Список менеджеров содержит дубликаты')
         return self
 
 
@@ -70,9 +72,12 @@ class CafeUpdate(BaseModel):
 
     @model_validator(mode='after')
     def validate_managers(self) -> Self:
-        """Проверяет, что список менеджеров не пустой, если он передан."""
-        if self.managers_id is not None and len(self.managers_id) == 0:
-            raise ValueError('Список менеджеров не может быть пустым')
+        """Проверяет, что список менеджеров не пустой и без дубликатов."""
+        if self.managers_id is not None:
+            if len(self.managers_id) == 0:
+                raise ValueError('Список менеджеров не может быть пустым')
+            if len(self.managers_id) != len(set(self.managers_id)):
+                raise ValueError('Список менеджеров содержит дубликаты')
         return self
 
 
