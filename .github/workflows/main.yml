@@ -38,5 +38,5 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /opt/booking
-            docker compose -f docker-compose.yml pull app
-            docker compose -f docker-compose.yml up -d app
+            docker compose -f docker-compose.production.yml pull app
+            docker compose -f docker-compose.production.yml up -d app
