@@ -6,20 +6,30 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from cafes.schemas import CafeShortInfo
 
-from .constants import DESCRIPTION_MAX_LENGTH
+from .constants import DESCRIPTION_MAX_LENGTH, SEAT_NUMBER_MAX, SEAT_NUMBER_MIN
 
 
 class TableCreate(BaseModel):
     """Схема для создания стола."""
 
-    seat_number: int = Field(..., ge=1, description='Количество мест')
+    seat_number: int = Field(
+        ...,
+        ge=SEAT_NUMBER_MIN,
+        le=SEAT_NUMBER_MAX,
+        description='Количество мест',
+    )
     description: Optional[str] = Field(None, max_length=DESCRIPTION_MAX_LENGTH, description='Описание стола')
 
 
 class TableUpdate(BaseModel):
     """Схема для обновления стола."""
 
-    seat_number: Optional[int] = Field(None, ge=1, description='Количество мест')
+    seat_number: Optional[int] = Field(
+        None,
+        ge=SEAT_NUMBER_MIN,
+        le=SEAT_NUMBER_MAX,
+        description='Количество мест',
+    )
     description: Optional[str] = Field(None, max_length=DESCRIPTION_MAX_LENGTH, description='Описание стола')
     is_active: Optional[bool] = None
 
