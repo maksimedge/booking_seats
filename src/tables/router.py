@@ -36,9 +36,6 @@ async def get_tables(
     if current_user.role == 'USER':
         only_active = True
 
-    if only_active is None:
-        only_active = False
-
     return await get_tables_by_cafe(db, cafe_id, only_active)
 
 

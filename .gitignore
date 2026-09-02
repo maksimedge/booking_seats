@@ -37,3 +37,5 @@ alembic.ini
 
 
 celerybeat-schedule*
+
+test_tables.py
