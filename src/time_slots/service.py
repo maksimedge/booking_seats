@@ -11,10 +11,10 @@ from time_slots.models import TimeSlot
 from time_slots.schemas import TimeSlotCreate, TimeSlotUpdate
 
 
-def _parse_time(time_str: time) -> time:
-    """Преобразует строку в объект time."""
+def _parse_time(time_str: str) -> time:
+    """Преобразует строку в объект time (только для обновления)."""
     try:
-        return time.fromisoformat(str(time_str))
+        return time.fromisoformat(time_str)
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -35,8 +35,8 @@ async def create_time_slot(
             detail=f'Кафе с ID {cafe_id} не найдено',
         )
 
-    start = _parse_time(slot_data.start_time)
-    end = _parse_time(slot_data.end_time)
+    start = slot_data.start_time
+    end = slot_data.end_time
 
     if start >= end:
         raise HTTPException(

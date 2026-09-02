@@ -40,6 +40,18 @@ def validate_tables_slots_list(v: List[TableSlot]) -> List[TableSlot]:
     return v
 
 
+def validate_tables_slots_no_duplicates(tables_slots: List[TableSlot]) -> None:
+    """Проверяет, что в списке пар (стол + слот) нет дубликатов."""
+    seen = set()
+    for item in tables_slots:
+        key = (item.table_id, item.slot_id)
+        if key in seen:
+            raise ValueError(
+                f'Обнаружен дубликат: стол {item.table_id} и слот {item.slot_id} указаны несколько раз',
+            )
+        seen.add(key)
+
+
 class BookingCreate(BaseModel):
     """Схема для создания нового бронирования."""
 
@@ -67,8 +79,10 @@ class BookingCreate(BaseModel):
     @classmethod
     def validate_tables_slots(cls, v: Optional[List[TableSlot]]) -> Optional[List[TableSlot]]:
         """Проверяет, что список пар (стол + слот) не пустой (если передан)."""
-        if v is not None and not v:
-            raise ValueError('Список столов не может быть пустым')
+        if v is not None:
+            if not v:
+                raise ValueError('Список столов не может быть пустым')
+            validate_tables_slots_no_duplicates(v)
         return v
 
 

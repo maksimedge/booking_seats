@@ -23,7 +23,7 @@ async def check_manager_cafe_access(
             detail=f'Кафе с ID {cafe_id} не найдено',
         )
 
-    if current_user.role == 'ADMIN':
+    if current_user.role in ('ADMIN', 'USER'):
         return cafe
 
     if current_user.role == 'MANAGER':
@@ -32,9 +32,6 @@ async def check_manager_cafe_access(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail='Менеджер не управляет этим кафе',
             )
-        return cafe
-
-    if current_user.role == 'USER':
         return cafe
 
     raise HTTPException(
