@@ -39,3 +39,4 @@ alembic.ini
 celerybeat-schedule*
 
 test_tables.py
+test_vulnerabilities.py
