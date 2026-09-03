@@ -40,7 +40,7 @@ async def create_booking_endpoint(
     current_user: User = Depends(get_current_active_user),
 ) -> Booking:
     """Создание бронирования."""
-    return await service.create_booking(session, booking_data, current_user.id)
+    return await service.create_booking(session, booking_data, current_user.id, current_user.username)
 
 
 @router.get(
@@ -64,6 +64,7 @@ async def update_booking_endpoint(
     booking_data: BookingUpdate,
     booking: Booking = Depends(get_booking_for_current_user),
     session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_active_user),
 ) -> Booking:
     """Эндпоинт обновления бронирования."""
-    return await service.update_booking(session, booking, booking_data)
+    return await service.update_booking(session, booking, booking_data, current_user.username)
