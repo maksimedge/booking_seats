@@ -34,6 +34,7 @@ app.include_router(main_router)
 
 @app.get('/health')
 async def health() -> dict:
+    """Health monitor."""
     return {'status': 'ok'}
 
 

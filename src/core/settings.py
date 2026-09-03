@@ -36,6 +36,16 @@ class Settings(BaseSettings):
     log_retention: int = 5
     log_to_console: bool = True
 
+    # Настройки celery
+    rabbitmq_user: str
+    rabbitmq_password: str
+    rabbitmq_host: str
+    rabbitmq_port: int
+
+    reminder_before_period_hours: int = 1
+
+    email_from_address: str = 'booking@cafe.local'
+
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / '../infra/.env',
         env_file_encoding='utf-8',
@@ -48,6 +58,14 @@ class Settings(BaseSettings):
         return (
             f'postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}@'
             f'{self.postgres_server}:{self.postgres_port}/{self.postgres_db}'
+        )
+
+    @property
+    def rabbitmq_url(self) -> str:
+        """Строка подключения к rabbitmq."""
+        return (
+            f'amqp://{self.rabbitmq_user}:{self.rabbitmq_password}@'
+            f'{self.rabbitmq_host}:{self.rabbitmq_port}//'
         )
 
 

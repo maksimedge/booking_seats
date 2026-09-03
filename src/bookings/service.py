@@ -12,6 +12,7 @@ from bookings.validators import (
     validate_tables_and_slots,
     validate_tables_capacity,
 )
+from notifications.tasks import booking_created_notification_task, booking_updated_notification_task
 
 from core.logger import log_action, logger
 
@@ -39,7 +40,10 @@ async def create_booking(
         booking_date=booking_data.booking_date,
         tables_slots=booking_data.tables_slots,
     )
+
     booking = await crud.create_booking_record(session, booking_data, user_id)
+
+    booking_created_notification_task.delay(booking.id)
 
     logger.info(
         f'Пользователь {username} (id={user_id}) создал бронирование '
@@ -68,6 +72,7 @@ async def update_booking(
     """Сервис обновления бронирования с проверкой даты и статуса."""
     await validate_booking_is_updatable(booking)
     update_data = booking_data.model_dump(exclude_unset=True)
+
     if 'tables_slots' in update_data or 'guest_number' in update_data:
         tables_slots = update_data.get('tables_slots')
         guest_number = update_data.get('guest_number')
@@ -85,6 +90,8 @@ async def update_booking(
             guest_number=guest_number,
         )
     updated_booking = await crud.update_booking_record(session, booking, update_data)
+
+    booking_updated_notification_task.delay(updated_booking.id)
 
     logger.info(
         f'Пользователь {username} (id={booking.user_id}) обновил бронирование '
