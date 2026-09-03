@@ -1,29 +1,27 @@
 import asyncio
+import smtplib
 from uuid import UUID
 
 from notifications.service import find_booking_for_notification, send_notification
 
 from core.celery_app import booking_celery
 
-# @booking_celery.task
-# def send_notification_task(value: str) -> None:
-#     """Hello task."""
-#     send_notification(value)
 
-
-@booking_celery.task
-def periodic_test_task() -> None:
-    """Beat task."""
-    print('Celery Beat task выполнена')
-
-
-@booking_celery.task
+@booking_celery.task(
+    autoretry_for=(smtplib.SMTPException, OSError),
+    retry_backoff=True,
+    max_retries=3,
+)
 def booking_created_notification_task(booking_id: UUID) -> None:
     """Отправляет уведомление менеджерам кафе после создания бронирования."""
-    asyncio.run(send_notification(booking_id, None))
+    asyncio.run(send_notification(booking_id, False))
 
 
-@booking_celery.task
+@booking_celery.task(
+    autoretry_for=(smtplib.SMTPException, OSError),
+    retry_backoff=True,
+    max_retries=3,
+)
 def booking_updated_notification_task(booking_id: UUID) -> None:
     """Отправляет уведомление менеджерам кафе после обновления бронирования."""
     asyncio.run(send_notification(booking_id, True))
@@ -31,11 +29,5 @@ def booking_updated_notification_task(booking_id: UUID) -> None:
 
 @booking_celery.task
 def check_booking_reminders_task() -> None:
-    """Check notifications."""
-    asyncio.run(find_booking_for_notification())
-
-
-@booking_celery.task
-def test_booking_reminders_task() -> None:
     """Check notifications."""
     asyncio.run(find_booking_for_notification())

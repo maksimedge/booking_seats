@@ -1,3 +1,4 @@
+from datetime import date
 from uuid import UUID
 
 from sqlalchemy import select
@@ -6,6 +7,7 @@ from sqlalchemy.orm import selectinload
 
 from bookings.models import Booking, BookingStatus, BookingTableSlot
 from bookings.schemas import BookingCreate
+from cafes.models import Cafe
 
 
 async def get_booking_with_relations(
@@ -18,7 +20,7 @@ async def get_booking_with_relations(
         .where(Booking.id == booking_id)
         .options(
             selectinload(Booking.user),
-            selectinload(Booking.cafe),
+            selectinload(Booking.cafe).selectinload(Cafe.managers),
             selectinload(Booking.tables_slots).selectinload(BookingTableSlot.table),
             selectinload(Booking.tables_slots).selectinload(BookingTableSlot.slot),
         )
@@ -91,5 +93,22 @@ async def update_booking_record(
             )
     for field, value in update_data.items():
         setattr(booking, field, value)
+    if tables_slots is not None or 'booking_date' in update_data:
+        booking.notification_sent = False
     await session.commit()
     return await get_booking_with_relations(session, booking.id)
+
+
+async def get_bookings_for_reminders(session: AsyncSession) -> list[Booking]:
+    """Получить все бронирования, у которых статус BOOKING и дата не в прошлом."""
+    result = await session.execute(
+        select(Booking)
+        .options(
+            selectinload(Booking.tables_slots).selectinload(BookingTableSlot.slot),
+            selectinload(Booking.tables_slots).selectinload(BookingTableSlot.table),
+            selectinload(Booking.user),
+        )
+        .where(Booking.status == BookingStatus.BOOKING)
+        .where(Booking.booking_date >= date.today()),
+    )
+    return list(result.scalars().all())

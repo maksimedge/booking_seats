@@ -42,6 +42,10 @@ class Settings(BaseSettings):
     rabbitmq_host: str
     rabbitmq_port: int
 
+    reminder_before_period_hours: int = 1
+
+    email_from_address: str = 'booking@cafe.local'
+
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / '../infra/.env',
         env_file_encoding='utf-8',
