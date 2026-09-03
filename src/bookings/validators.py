@@ -85,3 +85,36 @@ async def validate_booking_is_updatable(booking: Booking) -> None:
             status.HTTP_400_BAD_REQUEST,
             detail='Изменить можно только бронирование со статусом BOOKING',
         )
+
+
+async def validate_tables_capacity(
+    session: AsyncSession,
+    tables_slots: List[TableSlot],
+    guest_number: int,
+) -> None:
+    """Проверяет, что количество гостей не превышает суммарную вместимость выбранных столов."""
+    total_capacity = 0
+    for table_slot in tables_slots:
+        table = await session.get(Table, table_slot.table_id)
+        if table:
+            total_capacity += table.seat_number
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f'Стол {table_slot.table_id} не найден',
+            )
+
+    if total_capacity == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Не выбран ни один стол',
+        )
+
+    if guest_number > total_capacity:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f'Количество гостей ({guest_number}) превышает '
+                f'суммарную вместимость выбранных столов ({total_capacity})'
+            ),
+        )
