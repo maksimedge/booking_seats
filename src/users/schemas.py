@@ -32,9 +32,9 @@ class UserCreate(BaseModel):
         """Проверяет формат телефона."""
         if value is None:
             return value
-        digits = re.sub(r'[^0-9]', '', value)
-        if len(digits) < 7:
-            raise ValueError('Телефон должен содержать не менее 7 цифр')
+        cleaned = re.sub(r'[^\d+]', '', value)
+        if not re.match(r'^\+?\d{7,15}$', cleaned):
+            raise ValueError('Телефон должен содержать от 7 до 15 цифр и может начинаться с +')
         return value
 
     @model_validator(mode='after')
@@ -66,16 +66,16 @@ class UserUpdate(BaseModel):
         """Проверяет формат телефона."""
         if value is None:
             return value
-        digits = re.sub(r'[^0-9]', '', value)
-        if len(digits) < 7:
-            raise ValueError('Телефон должен содержать не менее 7 цифр')
+        cleaned = re.sub(r'[^\d+]', '', value)
+        if not re.match(r'^\+?\d{7,15}$', cleaned):
+            raise ValueError('Телефон должен содержать от 7 до 15 цифр и может начинаться с +')
         return value
 
 
 class UserShortInfo(BaseModel):
     """Краткая информация о пользователе."""
 
-    id: uuid.UUID  # было int, исправлено
+    id: uuid.UUID
     username: str
     email: Optional[EmailStr] = None
     phone: Optional[str] = None

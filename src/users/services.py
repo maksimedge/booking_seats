@@ -114,6 +114,14 @@ async def update_user_by_id_service(
                 detail='Нельзя изменять роль или активность',
             )
 
+    # Запрет изменения роли, если текущий пользователь не Admin
+    if user_update.role is not None and current_user.role != UserRole.ADMIN:
+        logger.warning('Попытка изменения роли пользователем без прав администратора')
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN,
+            detail='Только администратор может изменить роль',
+        )
+
     # Логирование блокировки/разблокировки
     if user_update.is_active is not None and user_update.is_active != user.is_active:
         if user_update.is_active:
