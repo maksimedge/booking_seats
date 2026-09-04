@@ -3,7 +3,6 @@ import uuid
 from datetime import datetime
 from typing import Optional, Self
 
-import phonenumbers
 from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 from users.constants import (
@@ -30,15 +29,12 @@ class UserCreate(BaseModel):
     @field_validator('phone')
     @classmethod
     def validate_phone(cls, value: Optional[str]) -> Optional[str]:
-        """Проверяет формат телефона библиотекой phonenumbers."""
+        """Проверяет формат телефона."""
         if value is None:
             return value
-        try:
-            phone = phonenumbers.parse(value, 'RU')
-            if not phonenumbers.is_valid_number(phone):
-                raise ValueError('Невалидный российский номер телефона')
-        except phonenumbers.NumberParseException:
-            raise ValueError('Некорректный формат номера телефона')
+        cleaned = re.sub(r'[^\d+]', '', value)
+        if not re.match(r'^\+?\d{7,15}$', cleaned):
+            raise ValueError('Телефон должен содержать от 7 до 15 цифр и может начинаться с +')
         return value
 
     @model_validator(mode='after')
