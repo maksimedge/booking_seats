@@ -3,7 +3,7 @@ from datetime import date
 from typing import List, Optional
 from uuid import UUID
 
-from sqlalchemy import CheckConstraint, Date, Enum, ForeignKey, Integer, String
+from sqlalchemy import Boolean, CheckConstraint, Date, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from cafes.models import Cafe
@@ -86,6 +86,7 @@ class Booking(Base):
         cascade='all, delete-orphan',
         lazy='selectin',
     )
+    notification_sent: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
 
     __table_args__ = (
         CheckConstraint('guest_number >= 1', name='check_guest_number_positive'),

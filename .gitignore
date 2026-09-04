@@ -28,7 +28,7 @@ logs/
 *.log
 
 # Migrations (local)
-src/migrations/versions/
+# src/migrations/versions/
 alembic/
 alembic.ini
 
@@ -39,3 +39,4 @@ alembic.ini
 celerybeat-schedule*
 
 test_tables.py
+test_vulnerabilities.py

@@ -1,3 +1,4 @@
+import logging
 from typing import List, Optional
 from uuid import UUID
 
@@ -10,6 +11,8 @@ from cafes.models import Cafe
 from cafes.schemas import CafeCreate, CafeUpdate
 from users.constants import UserRole
 from users.models import User
+
+logger = logging.getLogger(__name__)
 
 
 async def create_cafe(
@@ -26,21 +29,37 @@ async def create_cafe(
     existing: Optional[Cafe] = result.scalar_one_or_none()
 
     if existing:
+        logger.warning(
+            f'Попытка создать кафе с существующими данными: '
+            f'name={cafe_data.name}, address={cafe_data.address}',
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Кафе с таким названием и адресом уже существует',
         )
 
     result_managers: Result = await db.execute(
-        select(User).where(User.id.in_(cafe_data.managers_id)).where(User.cafe_id.is_(None)),
+        select(User).where(User.id.in_(cafe_data.managers_id)),
     )
     managers: List[User] = result_managers.scalars().all()
 
     if len(managers) != len(cafe_data.managers_id):
+        missing = set(cafe_data.managers_id) - {m.id for m in managers}
+        logger.warning(f'Менеджеры не найдены: {missing}')
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Один или несколько менеджеров не найдены или уже привязаны',
+            detail='Один или несколько менеджеров не найдены',
         )
+
+    for manager in managers:
+        if manager.cafe_id is not None:
+            logger.warning(
+                f'Менеджер {manager.id} ({manager.username}) уже привязан к кафе {manager.cafe_id}',
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f'Менеджер {manager.username} уже привязан к другому кафе',
+            )
 
     new_cafe: Cafe = Cafe(
         name=cafe_data.name,
@@ -58,6 +77,7 @@ async def create_cafe(
 
     await db.commit()
     await db.refresh(new_cafe)
+    logger.info(f'Создано кафе: id={new_cafe.id}, name={new_cafe.name}')
     return new_cafe
 
 
@@ -66,7 +86,11 @@ async def get_cafes(
     show_active: Optional[bool] = None,
     current_user: Optional[User] = None,
 ) -> List[Cafe]:
-    """Получение списка кафе с учётом роли пользователя."""
+    """Получение списка кафе.
+
+    Для администраторов и менеджеров — все кафе (с возможностью выбора).
+    Для пользователей — только активные.
+    """
     query = select(Cafe)
 
     if current_user is None or current_user.role == UserRole.USER:
