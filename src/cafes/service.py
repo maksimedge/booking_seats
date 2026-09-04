@@ -72,10 +72,7 @@ async def get_cafes(
     if current_user is None or current_user.role == UserRole.USER:
         query = query.where(Cafe.is_active)
     elif current_user.role == UserRole.MANAGER:
-        if show_active is not None:
-            query = query.where(Cafe.is_active == show_active)
-        else:
-            query = query.where(Cafe.is_active)
+        query = query.where(Cafe.is_active)
     elif current_user.role == UserRole.ADMIN:
         if show_active is not None:
             query = query.where(Cafe.is_active == show_active)

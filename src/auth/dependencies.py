@@ -12,7 +12,7 @@ from users.crud import get_user_by_id
 from users.models import User
 
 from core.db import get_session
-from core.logger import logger, set_log_context  # <-- добавлен импорт
+from core.logger import logger, set_log_context
 from core.security import decode_access_token
 
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -25,7 +25,7 @@ async def get_optional_current_user(
 ) -> User | None:
     """Возвращает пользователя, если токен валиден, иначе None."""
     if credentials is None:
-        logger.warning('Отсутствующий Bearer token')
+        logger.debug('Отсутствующий Bearer token')
         return None
 
     token = credentials.credentials
@@ -50,7 +50,6 @@ async def get_optional_current_user(
         logger.warning('Пользователь по токену не найден')
         return None
 
-    # Устанавливаем контекст для логов – теперь все логи в запросе будут содержать user_id и username
     set_log_context(user_id=user.id, username=user.username)
     return user
 
@@ -73,7 +72,7 @@ def role_required(*allowed_roles: UserRole, allow_anon: bool = False) -> Callabl
             logger.warning('Попытка доступа заблокированного пользователя')
             raise HTTPException(
                 status_code=HTTPStatus.UNAUTHORIZED,
-                detail='Пользователь заблокирован',
+                detail='Недостаточно прав',
             )
 
         if allowed_roles and user.role not in allowed_roles:
@@ -83,8 +82,6 @@ def role_required(*allowed_roles: UserRole, allow_anon: bool = False) -> Callabl
                 detail='Недостаточно прав',
             )
 
-        # Дополнительная страховка: если контекст не был установлен (например, при allow_anon=True,
-        # но пользователь оказался авторизованным) – устанавливаем его здесь.
         set_log_context(user_id=user.id, username=user.username)
         return user
 

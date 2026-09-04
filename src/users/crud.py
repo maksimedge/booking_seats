@@ -1,5 +1,7 @@
+from http import HTTPStatus
 from uuid import UUID
 
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,7 +13,26 @@ from core.security import get_password_hash
 
 
 async def create_user(db: AsyncSession, user_create: UserCreate) -> User:
-    """Создаёт нового пользователя с хешированным паролем."""
+    """Создаёт нового пользователя с хешированным паролем.
+
+    Проверяет уникальность username, email и phone через БД.
+    """
+    if await get_user_by_username(db, user_create.username):
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='Username already exists',
+        )
+    if user_create.email and await get_user_by_email(db, user_create.email):
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='Email already exists',
+        )
+    if user_create.phone and await get_user_by_phone(db, user_create.phone):
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='Phone already exists',
+        )
+
     user = User(
         username=user_create.username,
         password_hash=get_password_hash(user_create.password),
@@ -74,12 +95,42 @@ async def get_user_by_phone(db: AsyncSession, phone: str) -> User | None:
 
 
 async def update_user(db: AsyncSession, user: User, user_update: UserUpdate) -> User:
-    """Обновляет данные пользователя, хешируя новый пароль при его изменении."""
+    """Обновляет данные пользователя, хешируя новый пароль при его изменении.
+
+    Проверяет уникальность обновляемых полей (username, email, phone)
+    среди других пользователей (исключая самого себя).
+    """
     data = user_update.model_dump(exclude_unset=True)
+
+    if 'username' in data and data['username'] is not None:
+        existing = await get_user_by_username(db, data['username'])
+        if existing and existing.id != user.id:
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST,
+                detail='Username already exists',
+            )
+    if 'email' in data and data['email'] is not None:
+        existing = await get_user_by_email(db, data['email'])
+        if existing and existing.id != user.id:
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST,
+                detail='Email already exists',
+            )
+    if 'phone' in data and data['phone'] is not None:
+        existing = await get_user_by_phone(db, data['phone'])
+        if existing and existing.id != user.id:
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST,
+                detail='Phone already exists',
+            )
+
+    # Хеширование пароля, если передан
     if 'password' in data and data['password'] is not None:
         data['password_hash'] = get_password_hash(data.pop('password'))
+
     for key, value in data.items():
         setattr(user, key, value)
+
     db.add(user)
     try:
         await db.commit()

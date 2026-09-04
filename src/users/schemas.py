@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime
 from typing import Optional, Self
 
+import phonenumbers
 from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 from users.constants import (
@@ -29,12 +30,15 @@ class UserCreate(BaseModel):
     @field_validator('phone')
     @classmethod
     def validate_phone(cls, value: Optional[str]) -> Optional[str]:
-        """Проверяет формат телефона."""
+        """Проверяет формат телефона библиотекой phonenumbers."""
         if value is None:
             return value
-        digits = re.sub(r'[^0-9]', '', value)
-        if len(digits) < 7:
-            raise ValueError('Телефон должен содержать не менее 7 цифр')
+        try:
+            phone = phonenumbers.parse(value, 'RU')
+            if not phonenumbers.is_valid_number(phone):
+                raise ValueError('Невалидный российский номер телефона')
+        except phonenumbers.NumberParseException:
+            raise ValueError('Некорректный формат номера телефона')
         return value
 
     @model_validator(mode='after')
@@ -63,7 +67,7 @@ class UserUpdate(BaseModel):
     @field_validator('phone')
     @classmethod
     def validate_phone(cls, value: Optional[str]) -> Optional[str]:
-        """Проверяет формат телефона."""
+        """Проверяет формат телефона библиотекой phonenumbers."""
         if value is None:
             return value
         digits = re.sub(r'[^0-9]', '', value)
@@ -75,7 +79,7 @@ class UserUpdate(BaseModel):
 class UserShortInfo(BaseModel):
     """Краткая информация о пользователе."""
 
-    id: uuid.UUID  # было int, исправлено
+    id: uuid.UUID
     username: str
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
