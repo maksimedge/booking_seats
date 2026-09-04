@@ -63,12 +63,12 @@ class UserUpdate(BaseModel):
     @field_validator('phone')
     @classmethod
     def validate_phone(cls, value: Optional[str]) -> Optional[str]:
-        """Проверяет формат телефона библиотекой phonenumbers."""
+        """Проверяет формат телефона."""
         if value is None:
             return value
-        digits = re.sub(r'[^0-9]', '', value)
-        if len(digits) < 7:
-            raise ValueError('Телефон должен содержать не менее 7 цифр')
+        cleaned = re.sub(r'[^\d+]', '', value)
+        if not re.match(r'^\+?\d{7,15}$', cleaned):
+            raise ValueError('Телефон должен содержать от 7 до 15 цифр и может начинаться с +')
         return value
 
 
