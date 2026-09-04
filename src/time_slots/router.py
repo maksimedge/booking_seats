@@ -22,6 +22,7 @@ router = APIRouter(prefix='/cafes/{cafe_id}/time_slots')
 @router.get(
     '/',
     response_model=List[TimeSlotInfo],
+    summary='Список временных слотов в кафе',
 )
 async def get_time_slots(
     cafe_id: UUID,
@@ -53,6 +54,7 @@ async def get_time_slots(
     '/',
     response_model=TimeSlotInfo,
     status_code=status.HTTP_201_CREATED,
+    summary='Новый временный слот в кафе',
 )
 async def create_time_slot(
     cafe_id: UUID,
@@ -73,6 +75,7 @@ async def create_time_slot(
 @router.get(
     '/{slot_id}',
     response_model=TimeSlotInfo,
+    summary='Информация о временном слоте в кафе по его ID',
 )
 async def get_time_slot(
     cafe_id: UUID,
@@ -97,6 +100,7 @@ async def get_time_slot(
 @router.patch(
     '/{slot_id}',
     response_model=TimeSlotInfo,
+    summary='Обновление информации о временном слоте в кафе по его ID',
 )
 async def update_time_slot(
     cafe_id: UUID,
