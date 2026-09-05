@@ -3,10 +3,11 @@ from typing import AsyncGenerator
 
 import uvicorn
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 
 from api.router import main_router
 
-from core.exception_handler import app_exception_handler
+from core.exception_handler import app_exception_handler, validation_exception_handler
 from core.exceptions import AppException
 from core.logger import logger, setup_logging
 from core.middleware import LoggingMiddleware
@@ -35,6 +36,7 @@ app.add_exception_handler(
     AppException,
     app_exception_handler,
 )
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
 
 app.include_router(main_router)

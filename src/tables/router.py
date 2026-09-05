@@ -27,7 +27,13 @@ router = APIRouter(
 )
 async def get_tables(
     cafe_id: UUID,
-    only_active: Optional[bool] = Query(True, description='Только активные'),
+    only_active: Optional[bool] = Query(
+        None,
+        description='Фильтр по активности:\n'
+        '- `true` — только активные столы\n'
+        '- `false` — только неактивные столы\n'
+        '- не указывать (null) — все столы (активные и неактивные)',
+    ),
     db: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_active_user),
 ) -> List[TableResponse]:

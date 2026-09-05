@@ -1,3 +1,4 @@
+from typing import Optional
 from uuid import UUID
 
 from fastapi import status
@@ -23,7 +24,7 @@ async def get_table_by_id(db: AsyncSession, table_id: UUID) -> Table | None:
 async def get_tables_by_cafe(
     db: AsyncSession,
     cafe_id: UUID,
-    only_active: bool = True,
+    only_active: Optional[bool] = None,
 ) -> list[Table]:
     """Получить все столы кафе."""
     query = select(Table).options(selectinload(Table.cafe)).where(Table.cafe_id == cafe_id)
@@ -74,6 +75,36 @@ async def create_table(db: AsyncSession, cafe_id: UUID, table_data: TableCreate)
         )
 
 
+def _build_update_changes(update_data: dict, table: Table, old_seat_number: int) -> list[str]:
+    """Собрать список изменений для логирования."""
+    changes = []
+    if 'seat_number' in update_data and old_seat_number != table.seat_number:
+        changes.append(f'Изменено количество мест: {old_seat_number} -> {table.seat_number}')
+    if 'description' in update_data:
+        changes.append('Обновлено описание')
+    if 'is_active' in update_data:
+        changes.append(f'Статус активности: {"активен" if table.is_active else "неактивен"}')
+    return changes
+
+
+def _log_update_changes(table_id: UUID, changes: list[str]) -> None:
+    """Записать изменения в лог."""
+    if changes:
+        for change in changes:
+            log_action(change, table='tables', table_id=table_id)
+    else:
+        log_action('Обновлена запись', table='tables', table_id=table_id)
+
+
+def _validate_update_data(update_data: dict) -> None:
+    """Проверить данные обновления на валидность."""
+    if 'is_active' in update_data and update_data['is_active'] is None:
+        raise AppException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Поле is_active не может быть null',
+        )
+
+
 async def update_table(
     db: AsyncSession,
     table_id: UUID,
@@ -87,6 +118,9 @@ async def update_table(
 
     old_seat_number = table.seat_number
     update_data = table_update.model_dump(exclude_unset=True)
+
+    _validate_update_data(update_data)
+
     for key, value in update_data.items():
         setattr(table, key, value)
 
@@ -95,35 +129,15 @@ async def update_table(
         await db.refresh(table)
         await db.refresh(table, attribute_names=['cafe'])
 
-        changes = []
-        if 'seat_number' in update_data and old_seat_number != table.seat_number:
-            changes.append(f'Изменено количество мест: {old_seat_number} -> {table.seat_number}')
-        if 'description' in update_data:
-            changes.append('Обновлено описание')
-        if 'is_active' in update_data:
-            changes.append(f'Статус активности: {"активен" if table.is_active else "неактивен"}')
-        if changes:
-            for change in changes:
-                log_action(
-                    change,
-                    table='tables',
-                    table_id=table_id,
-                )
-        else:
-            log_action(
-                'Обновлена запись',
-                table='tables',
-                table_id=table_id,
-            )
+        changes = _build_update_changes(update_data, table, old_seat_number)
+        _log_update_changes(table_id, changes)
 
         return table
+
     except IntegrityError as e:
         await db.rollback()
         error_msg = str(e).lower()
-
-        logger.error(
-            f'Ошибка при обновлении записи в таблице tables, id={table_id}: {str(e)}',
-        )
+        logger.error(f'Ошибка при обновлении записи в таблице tables, id={table_id}: {str(e)}')
 
         if 'foreign key' in error_msg:
             raise AppException(
