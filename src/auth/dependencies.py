@@ -3,7 +3,7 @@ from http import HTTPStatus
 from typing import Annotated, Any, Optional
 from uuid import UUID
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,6 +12,7 @@ from users.crud import get_user_by_id
 from users.models import User
 
 from core.db import get_session
+from core.exceptions import AppException
 from core.logger import logger, set_log_context
 from core.security import decode_access_token
 
@@ -64,21 +65,21 @@ def role_required(*allowed_roles: UserRole, allow_anon: bool = False) -> Callabl
 
         if user is None:
             logger.warning('Попытка доступа без токена')
-            raise HTTPException(
+            raise AppException(
                 status_code=HTTPStatus.UNAUTHORIZED,
                 detail='Неверный или истёкший токен',
             )
 
         if not user.is_active:
             logger.warning('Попытка доступа заблокированного пользователя')
-            raise HTTPException(
+            raise AppException(
                 status_code=HTTPStatus.UNAUTHORIZED,
                 detail='Недостаточно прав',
             )
 
         if allowed_roles and user.role not in allowed_roles:
             logger.warning('Отказано в доступе: недостаточно прав')
-            raise HTTPException(
+            raise AppException(
                 status_code=HTTPStatus.FORBIDDEN,
                 detail='Недостаточно прав',
             )

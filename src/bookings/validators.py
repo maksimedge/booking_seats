@@ -2,7 +2,7 @@ from datetime import date
 from typing import List, Optional
 from uuid import UUID
 
-from fastapi import HTTPException, status
+from fastapi import status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,12 +12,14 @@ from cafes.models import Cafe
 from tables.models import Table
 from time_slots.models import TimeSlot
 
+from core.exceptions import AppException
+
 
 async def validate_cafe_exists(session: AsyncSession, cafe_id: UUID) -> None:
     """Проверяет, что кафе существует и активно."""
     cafe = await session.get(Cafe, cafe_id)
     if not cafe or not getattr(cafe, 'is_active', True):
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail='Кафе не найдено или недоступно')
+        raise AppException(status.HTTP_404_NOT_FOUND, detail='Кафе не найдено или недоступно')
 
 
 async def validate_tables_and_slots(
@@ -29,14 +31,14 @@ async def validate_tables_and_slots(
     for table_slot in tables_slots:
         table = await session.get(Table, table_slot.table_id)
         if not table or table.cafe_id != cafe_id or not getattr(table, 'is_active', True):
-            raise HTTPException(
+            raise AppException(
                 status.HTTP_400_BAD_REQUEST,
                 detail=f'Стол {table_slot.table_id} недоступен в выбранном кафе',
             )
 
         slot = await session.get(TimeSlot, table_slot.slot_id)
         if not slot or slot.cafe_id != cafe_id or not getattr(slot, 'is_active', True):
-            raise HTTPException(
+            raise AppException(
                 status.HTTP_400_BAD_REQUEST,
                 detail=f'Слот {table_slot.slot_id} недоступен в выбранном кафе',
             )
@@ -64,7 +66,7 @@ async def validate_no_overlap(
             query = query.where(Booking.id != exclude_booking_id)
         result = await session.execute(query)
         if result.scalars().first() is not None:
-            raise HTTPException(
+            raise AppException(
                 status.HTTP_409_CONFLICT,
                 detail=(
                     f'Стол {table_slot.table_id} уже забронирован '
@@ -76,12 +78,12 @@ async def validate_no_overlap(
 async def validate_booking_is_updatable(booking: Booking) -> None:
     """Проверяет, что бронь можно изменять/отменять."""
     if booking.booking_date < date.today():
-        raise HTTPException(
+        raise AppException(
             status.HTTP_400_BAD_REQUEST,
             detail='Нельзя изменять/отменять прошедшее бронирование',
         )
     if booking.status != BookingStatus.BOOKING:
-        raise HTTPException(
+        raise AppException(
             status.HTTP_400_BAD_REQUEST,
             detail='Изменить можно только бронирование со статусом BOOKING',
         )
@@ -99,19 +101,19 @@ async def validate_tables_capacity(
         if table:
             total_capacity += table.seat_number
         else:
-            raise HTTPException(
+            raise AppException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f'Стол {table_slot.table_id} не найден',
             )
 
     if total_capacity == 0:
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Не выбран ни один стол',
         )
 
     if guest_number > total_capacity:
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
                 f'Количество гостей ({guest_number}) превышает '

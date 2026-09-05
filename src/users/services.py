@@ -1,7 +1,6 @@
 from http import HTTPStatus
 from uuid import UUID
 
-from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from users.constants import UserRole
@@ -10,6 +9,7 @@ from users.models import User
 from users.schemas import UserCreate, UserUpdate
 from users.validators import check_email_unique, check_phone_unique, check_username_unique
 
+from core.exceptions import AppException
 from core.logger import logger
 
 
@@ -21,7 +21,7 @@ async def register_user_service(
     """Регистрация нового пользователя с проверкой прав."""
     if current_user is not None and current_user.role == UserRole.USER:
         logger.warning('Попытка создания пользователя обычным пользователем')
-        raise HTTPException(
+        raise AppException(
             status_code=HTTPStatus.FORBIDDEN,
             detail='Обычный пользователь не может создавать новых пользователей',
         )
@@ -41,13 +41,13 @@ async def update_me_service(
     """Обновление собственного профиля."""
     if user_update.role is not None and user_update.role != current_user.role:
         logger.warning('Попытка изменения роли самому себе')
-        raise HTTPException(
+        raise AppException(
             status_code=HTTPStatus.FORBIDDEN,
             detail='Нельзя изменить роль самому себе',
         )
     if user_update.is_active is not None and user_update.is_active != current_user.is_active:
         logger.warning('Попытка изменения собственной активности')
-        raise HTTPException(
+        raise AppException(
             status_code=HTTPStatus.FORBIDDEN,
             detail='Нельзя изменить собственную активность',
         )
@@ -67,7 +67,7 @@ async def get_user_service(
     """Получение пользователя по ID с проверкой прав."""
     user = await get_user_by_id(db, user_id)
     if user is None:
-        raise HTTPException(
+        raise AppException(
             status_code=HTTPStatus.NOT_FOUND,
             detail='Пользователь не найден',
         )
@@ -75,7 +75,7 @@ async def get_user_service(
     logger.info(f'Тип current_user.id: {type(current_user.id)}, значение: {current_user.id}')
 
     if current_user.role == UserRole.USER and str(user.id) != str(current_user.id):
-        raise HTTPException(
+        raise AppException(
             status_code=HTTPStatus.FORBIDDEN,
             detail='Доступ только к своей записи',
         )
@@ -92,7 +92,7 @@ async def update_user_by_id_service(
     user = await get_user_by_id(db, user_id)
     if user is None:
         logger.warning('Попытка изменения несуществующего пользователя, id={}', user_id)
-        raise HTTPException(
+        raise AppException(
             status_code=HTTPStatus.NOT_FOUND,
             detail='Пользователь не найден',
         )
@@ -100,7 +100,7 @@ async def update_user_by_id_service(
     # Проверка прав доступа
     if current_user.role == UserRole.USER and str(user.id) != str(current_user.id):
         logger.warning('Отказано в изменении пользователя id={}: недостаточно прав', user_id)
-        raise HTTPException(
+        raise AppException(
             status_code=HTTPStatus.FORBIDDEN,
             detail='Доступ только к своей записи',
         )
@@ -109,7 +109,7 @@ async def update_user_by_id_service(
     if current_user.role == UserRole.USER:
         if user_update.role is not None or user_update.is_active is not None:
             logger.warning('Попытка изменения роли или активности самому себе через /{user_id}')
-            raise HTTPException(
+            raise AppException(
                 status_code=HTTPStatus.FORBIDDEN,
                 detail='Нельзя изменять роль или активность',
             )
@@ -117,7 +117,7 @@ async def update_user_by_id_service(
     # Запрет изменения роли, если текущий пользователь не Admin
     if user_update.role is not None and current_user.role != UserRole.ADMIN:
         logger.warning('Попытка изменения роли пользователем без прав администратора')
-        raise HTTPException(
+        raise AppException(
             status_code=HTTPStatus.FORBIDDEN,
             detail='Только администратор может изменить роль',
         )

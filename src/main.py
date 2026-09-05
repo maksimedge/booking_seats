@@ -6,6 +6,8 @@ from fastapi import FastAPI
 
 from api.router import main_router
 
+from core.exception_handler import app_exception_handler
+from core.exceptions import AppException
 from core.logger import logger, setup_logging
 from core.middleware import LoggingMiddleware
 from core.settings import settings
@@ -28,6 +30,12 @@ app = FastAPI(
 )
 
 app.add_middleware(LoggingMiddleware)
+
+app.add_exception_handler(
+    AppException,
+    app_exception_handler,
+)
+
 
 app.include_router(main_router)
 

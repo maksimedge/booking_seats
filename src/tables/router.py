@@ -1,7 +1,7 @@
 from typing import List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.dependencies import get_current_active_user, get_current_manager_or_admin
@@ -13,6 +13,7 @@ from .crud import update_table as update_table_crud
 from .schemas import TableCreate, TableResponse, TableUpdate
 from .validators import check_manager_cafe_access
 from core.db import get_session
+from core.exceptions import AppException
 
 router = APIRouter(
     prefix='/cafes',
@@ -55,19 +56,19 @@ async def get_table(
     table = await get_table_by_id(db, table_id)
 
     if not table:
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f'Стол с ID {table_id} не найден',
         )
 
     if table.cafe_id != cafe_id:
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f'Стол с ID {table_id} не найден в кафе {cafe_id}',
         )
 
     if current_user.role == 'USER' and not table.is_active:
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f'Стол с ID {table_id} не найден',
         )
@@ -108,20 +109,20 @@ async def update_table(
 
     table = await get_table_by_id(db, table_id)
     if not table:
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f'Стол с ID {table_id} не найден',
         )
 
     if table.cafe_id != cafe_id:
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f'Стол с ID {table_id} не найден в кафе {cafe_id}',
         )
 
     updated = await update_table_crud(db, table_id, update_data)
     if not updated:
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f'Стол с ID {table_id} не найден',
         )

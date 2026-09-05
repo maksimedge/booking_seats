@@ -1,7 +1,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,6 +18,7 @@ SessionDep = Annotated[AsyncSession, Depends(get_session)]
 @router.post(
     '/media',
     response_model=MediaInfo,
+    status_code=status.HTTP_201_CREATED,
     description=(
         'Загрузка изображения на сервер. Поддерживаются форматы jpg, png. '
         'Размер файла не более 5Мб. '
