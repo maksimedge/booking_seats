@@ -37,6 +37,31 @@ class UserCreate(BaseModel):
             raise ValueError('Телефон должен содержать от 7 до 15 цифр и может начинаться с +')
         return value
 
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, value: str) -> str:
+        """Проверяет пароль на сложность.
+
+        Требования:
+        - минимум 4 цифры
+        - минимум 4 заглавные буквы
+        - минимум 4 строчные буквы
+        - минимум 4 специальных символа
+        - длина не менее 16 символов
+        - запрет трёх и более одинаковых символов подряд
+        """
+        pattern = re.compile(
+            r'^(?=(.*\d){4})(?=(.*[A-Z]){4})(?=(.*[a-z]){4})(?=(.*[^A-Za-z0-9]){4}).{16,}$',
+        )
+        if not pattern.match(value):
+            raise ValueError(
+                'Пароль должен содержать минимум 4 цифры, 4 заглавные буквы, '
+                '4 строчные буквы, 4 специальных символа и быть длиной не менее 16 символов',
+            )
+        if re.search(r'(.)\1{2,}', value):
+            raise ValueError('Пароль не должен содержать три и более одинаковых символов подряд')
+        return value
+
     @model_validator(mode='after')
     def check_email_or_phone(self) -> Self:
         """Проверяет, что указан email или телефон."""
@@ -69,6 +94,33 @@ class UserUpdate(BaseModel):
         cleaned = re.sub(r'[^\d+]', '', value)
         if not re.match(r'^\+?\d{7,15}$', cleaned):
             raise ValueError('Телефон должен содержать от 7 до 15 цифр и может начинаться с +')
+        return value
+
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, value: Optional[str]) -> Optional[str]:
+        """Проверяет пароль на сложность.
+
+        Требования:
+        - минимум 4 цифры
+        - минимум 4 заглавные буквы
+        - минимум 4 строчные буквы
+        - минимум 4 специальных символа
+        - длина не менее 16 символов
+        - запрет трёх и более одинаковых символов подряд
+        """
+        if value is None:
+            return value
+        pattern = re.compile(
+            r'^(?=(.*\d){4})(?=(.*[A-Z]){4})(?=(.*[a-z]){4})(?=(.*[^A-Za-z0-9]){4}).{16,}$',
+        )
+        if not pattern.match(value):
+            raise ValueError(
+                'Пароль должен содержать минимум 4 цифры, 4 заглавные буквы, '
+                '4 строчные буквы, 4 специальных символа и быть длиной не менее 16 символов',
+            )
+        if re.search(r'(.)\1{2,}', value):
+            raise ValueError('Пароль не должен содержать три и более одинаковых символов подряд')
         return value
 
 

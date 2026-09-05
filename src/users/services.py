@@ -1,6 +1,7 @@
 from http import HTTPStatus
 from uuid import UUID
 
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from users.constants import UserRole
@@ -113,6 +114,18 @@ async def update_user_by_id_service(
                 status_code=HTTPStatus.FORBIDDEN,
                 detail='Нельзя изменять роль или активность',
             )
+
+    # Новая защита для администратора, чтобы он оставался в системе
+    if (
+        current_user.role == UserRole.ADMIN
+        and user.id == current_user.id
+        and (user_update.role is not None or user_update.is_active is not None)
+    ):
+        logger.warning('Попытка администратора изменить свою роль или активность')
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN,
+            detail='Администратор не может изменить свою роль или активность',
+        )
 
     # Запрет изменения роли, если текущий пользователь не Admin
     if user_update.role is not None and current_user.role != UserRole.ADMIN:
