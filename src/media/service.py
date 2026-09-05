@@ -5,7 +5,7 @@ from pathlib import Path
 
 import aiofiles
 from PIL import Image
-from fastapi import HTTPException, UploadFile
+from fastapi import UploadFile
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,6 +19,7 @@ from media.constants import (
 )
 from media.crud import create_media, get_media_by_id
 
+from core.exceptions import AppException
 from core.logger import logger
 
 CHUNK_SIZE = 1024 * 1024  # 1mb
@@ -47,7 +48,7 @@ async def upload_media(file: UploadFile, session: AsyncSession) -> uuid.UUID:
     except OSError as error:
         logger.exception('Не удалось сохранить файл: {}', file_path)
 
-        raise HTTPException(
+        raise AppException(
             status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
             detail='Не удалось сохранить изображение',
         ) from error
@@ -64,7 +65,7 @@ async def upload_media(file: UploadFile, session: AsyncSession) -> uuid.UUID:
         except OSError:
             logger.exception('Не удалось удалить файл после ошибки БД: {}', file_path)
 
-        raise HTTPException(
+        raise AppException(
             status_code=500,
             detail='Не удалось сохранить изображение',
         ) from error
@@ -77,7 +78,7 @@ async def get_file_path_by_id(media_id: uuid.UUID, session: AsyncSession) -> Pat
 
     if media_file is None:
         logger.error('Изображение {} не найдено в базе данных.', media_id)
-        raise HTTPException(
+        raise AppException(
             status_code=HTTPStatus.NOT_FOUND,
             detail='Изображение не найдено.',
         )
@@ -86,7 +87,7 @@ async def get_file_path_by_id(media_id: uuid.UUID, session: AsyncSession) -> Pat
 
     if not absolute_path.is_file():
         logger.error('Файл с id:{} - не найден.', media_id)
-        raise HTTPException(
+        raise AppException(
             status_code=HTTPStatus.NOT_FOUND,
             detail='Файл не найден.',
         )
@@ -100,7 +101,7 @@ def validate_and_convert_media(content: bytes) -> bytes:
     image = Image.open(buffer)
     if image.format not in ALLOWED_IMAGE_TYPES:
         logger.warning('Загрузка изображения типа {}.', image.format)
-        raise HTTPException(
+        raise AppException(
             status_code=HTTPStatus.BAD_REQUEST,
             detail='Поддерживается загрузка только JPG или PNG.',
         )
@@ -117,7 +118,7 @@ def check_for_correct_content(file: UploadFile) -> None:
     """Проверка на то, чтобы файл был именно изображение."""
     if file.content_type not in ALLOWED_CONTENT_TYPES:
         logger.warning('Загружаемый файл - не изображение:{}', file.content_type)
-        raise HTTPException(
+        raise AppException(
             status_code=HTTPStatus.BAD_REQUEST,
             detail='Поддерживается загрузка только изображений.',
         )
@@ -136,7 +137,7 @@ async def read_file_with_size_limit(file: UploadFile) -> bytes:
         total_size += len(part)
 
         if total_size > MAX_FILE_SIZE:
-            raise HTTPException(
+            raise AppException(
                 status_code=HTTPStatus.BAD_REQUEST,
                 detail=f'Файл не может быть более {int(MAX_FILE_SIZE_FOR_MESSAGE)} мб.',
             )

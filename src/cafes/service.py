@@ -2,7 +2,7 @@ import logging
 from typing import List, Optional
 from uuid import UUID
 
-from fastapi import HTTPException, status
+from fastapi import status
 from sqlalchemy import select
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,6 +11,8 @@ from cafes.models import Cafe
 from cafes.schemas import CafeCreate, CafeUpdate
 from users.constants import UserRole
 from users.models import User
+
+from core.exceptions import AppException
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +35,7 @@ async def create_cafe(
             f'Попытка создать кафе с существующими данными: '
             f'name={cafe_data.name}, address={cafe_data.address}',
         )
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Кафе с таким названием и адресом уже существует',
         )
@@ -46,7 +48,7 @@ async def create_cafe(
     if len(managers) != len(cafe_data.managers_id):
         missing = set(cafe_data.managers_id) - {m.id for m in managers}
         logger.warning(f'Менеджеры не найдены: {missing}')
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Один или несколько менеджеров не найдены',
         )
@@ -56,7 +58,7 @@ async def create_cafe(
             logger.warning(
                 f'Менеджер {manager.id} ({manager.username}) уже привязан к кафе {manager.cafe_id}',
             )
-            raise HTTPException(
+            raise AppException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f'Менеджер {manager.username} уже привязан к другому кафе',
             )
@@ -137,7 +139,7 @@ async def update_cafe(
         existing: Optional[Cafe] = result.scalar_one_or_none()
 
         if existing:
-            raise HTTPException(
+            raise AppException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail='Кафе с таким названием и адресом уже существует',
             )
@@ -153,7 +155,7 @@ async def update_cafe(
         managers: List[User] = result.scalars().all()
 
         if len(managers) != len(update_data.managers_id):
-            raise HTTPException(
+            raise AppException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail='Один или несколько менеджеров не найдены или уже привязаны',
             )

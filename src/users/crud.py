@@ -1,13 +1,13 @@
 from http import HTTPStatus
 from uuid import UUID
 
-from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from users.models import User
 from users.schemas import UserCreate, UserUpdate
 
+from core.exceptions import AppException
 from core.logger import logger
 from core.security import get_password_hash
 
@@ -18,17 +18,17 @@ async def create_user(db: AsyncSession, user_create: UserCreate) -> User:
     Проверяет уникальность username, email и phone через БД.
     """
     if await get_user_by_username(db, user_create.username):
-        raise HTTPException(
+        raise AppException(
             status_code=HTTPStatus.BAD_REQUEST,
             detail='Username already exists',
         )
     if user_create.email and await get_user_by_email(db, user_create.email):
-        raise HTTPException(
+        raise AppException(
             status_code=HTTPStatus.BAD_REQUEST,
             detail='Email already exists',
         )
     if user_create.phone and await get_user_by_phone(db, user_create.phone):
-        raise HTTPException(
+        raise AppException(
             status_code=HTTPStatus.BAD_REQUEST,
             detail='Phone already exists',
         )
@@ -105,21 +105,21 @@ async def update_user(db: AsyncSession, user: User, user_update: UserUpdate) -> 
     if 'username' in data and data['username'] is not None:
         existing = await get_user_by_username(db, data['username'])
         if existing and existing.id != user.id:
-            raise HTTPException(
+            raise AppException(
                 status_code=HTTPStatus.BAD_REQUEST,
                 detail='Username already exists',
             )
     if 'email' in data and data['email'] is not None:
         existing = await get_user_by_email(db, data['email'])
         if existing and existing.id != user.id:
-            raise HTTPException(
+            raise AppException(
                 status_code=HTTPStatus.BAD_REQUEST,
                 detail='Email already exists',
             )
     if 'phone' in data and data['phone'] is not None:
         existing = await get_user_by_phone(db, data['phone'])
         if existing and existing.id != user.id:
-            raise HTTPException(
+            raise AppException(
                 status_code=HTTPStatus.BAD_REQUEST,
                 detail='Phone already exists',
             )

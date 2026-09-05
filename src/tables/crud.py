@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import HTTPException, status
+from fastapi import status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,6 +8,7 @@ from sqlalchemy.orm import selectinload
 
 from .models import Table
 from .schemas import TableCreate, TableUpdate
+from core.exceptions import AppException
 from core.logger import log_action, logger
 
 
@@ -61,13 +62,13 @@ async def create_table(db: AsyncSession, cafe_id: UUID, table_data: TableCreate)
             logger.warning(
                 f'Невозможно создать стол: кафе id={cafe_id} не найдено',
             )
-            raise HTTPException(
+            raise AppException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f'Кафе с id {cafe_id} не найдено',
             )
 
         logger.error(f'Ошибка при создании стола: {str(e)}')
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Ошибка базы данных',
         )
@@ -125,11 +126,11 @@ async def update_table(
         )
 
         if 'foreign key' in error_msg:
-            raise HTTPException(
+            raise AppException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f'Кафе с id {table_update.cafe_id} не найдено',
             )
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Ошибка базы данных',
         )

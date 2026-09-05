@@ -1,7 +1,7 @@
 from typing import List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.dependencies import (
@@ -13,6 +13,7 @@ from cafes.schemas import CafeCreate, CafeInfo, CafeUpdate
 from users.models import User
 
 from core.db import get_session
+from core.exceptions import AppException
 
 router = APIRouter(prefix='/cafes')
 
@@ -68,7 +69,7 @@ async def get_cafe(
     """Получение кафе по ID."""
     cafe = await service.get_cafe_by_id(db, cafe_id)
     if not cafe:
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f'Кафе с ID {cafe_id} не найдено',
         )
@@ -89,7 +90,7 @@ async def update_cafe(
     """Обновление кафе (только для менеджеров и админов)."""
     cafe = await service.get_cafe_by_id(db, cafe_id)
     if not cafe:
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f'Кафе с ID {cafe_id} не найдено',
         )

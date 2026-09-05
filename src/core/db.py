@@ -1,9 +1,9 @@
 from typing import AsyncIterator
 
-from fastapi import HTTPException
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+from core.exceptions import AppException
 from core.settings import settings
 
 async_engine = create_async_engine(
@@ -34,7 +34,7 @@ async def get_session() -> AsyncIterator[AsyncSession]:
 
             traceback.print_exc()
             print('=' * 80)
-            raise HTTPException(
+            raise AppException(
                 status_code=500,
                 detail=f'Ошибка при работе с БД: {str(e)}',
             )

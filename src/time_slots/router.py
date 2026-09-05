@@ -14,6 +14,7 @@ from time_slots.schemas import TimeSlotCreate, TimeSlotInfo, TimeSlotUpdate
 from users.models import User
 
 from core.db import get_session
+from core.exceptions import AppException
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/cafes/{cafe_id}/time_slots')
@@ -89,7 +90,7 @@ async def get_time_slot(
         logger.warning(
             f'Time slot not found: slot_id={slot_id}, cafe_id={cafe_id}',
         )
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Time slot not found',
         )
@@ -115,7 +116,7 @@ async def update_time_slot(
         logger.warning(
             f'Time slot not found for update: slot_id={slot_id}, cafe_id={cafe_id}',
         )
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Time slot not found',
         )

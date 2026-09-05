@@ -1,10 +1,12 @@
 from uuid import UUID
 
-from fastapi import HTTPException, status
+from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from cafes.models import Cafe
 from users.models import User
+
+from core.exceptions import AppException
 
 
 async def check_manager_cafe_access(
@@ -18,7 +20,7 @@ async def check_manager_cafe_access(
     """
     cafe = await db.get(Cafe, cafe_id)
     if not cafe:
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f'Кафе с ID {cafe_id} не найдено',
         )
@@ -28,13 +30,13 @@ async def check_manager_cafe_access(
 
     if current_user.role == 'MANAGER':
         if current_user.id not in [m.id for m in cafe.managers]:
-            raise HTTPException(
+            raise AppException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail='Менеджер не управляет этим кафе',
             )
         return cafe
 
-    raise HTTPException(
+    raise AppException(
         status_code=status.HTTP_403_FORBIDDEN,
         detail='Недостаточно прав',
     )

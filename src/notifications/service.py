@@ -4,14 +4,13 @@ from http import HTTPStatus
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from fastapi import HTTPException
-
 from bookings.crud import get_booking_with_relations, get_bookings_for_reminders
 from bookings.models import Booking, BookingTableSlot
 from notifications.email import send_email
 
 from core import alembic_models  # noqa
 from core.celery_db import celery_session_maker
+from core.exceptions import AppException
 from core.logger import logger
 from core.settings import settings
 
@@ -25,7 +24,7 @@ async def send_notification(booking_id: UUID, updated: bool) -> None:
 
         if booking is None:
             logger.error('Бронирование {} не найдено в базе данных.', booking_id)
-            raise HTTPException(
+            raise AppException(
                 status_code=HTTPStatus.NOT_FOUND,
                 detail='Бронирование не найдено.',
             )

@@ -3,7 +3,7 @@ from datetime import time
 from typing import List, Optional
 from uuid import UUID
 
-from fastapi import HTTPException, status
+from fastapi import status
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,6 +13,8 @@ from time_slots.models import TimeSlot
 from time_slots.schemas import TimeSlotCreate, TimeSlotUpdate
 from users.constants import UserRole
 from users.models import User
+
+from core.exceptions import AppException
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +26,7 @@ def _parse_time(time_str: str) -> time:
     except ValueError:
         detail = f'Некорректный формат времени: {time_str}. Ожидается HH:MM:SS'
         logger.warning(detail)
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=detail,
         )
@@ -52,7 +54,7 @@ async def _check_slot_overlap(
         logger.warning(
             f'{detail}: cafe_id={cafe_id}, start={start}, end={end}',
         )
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=detail,
         )
@@ -80,7 +82,7 @@ async def _check_duplicate_slot(
         logger.warning(
             f'{detail}: cafe_id={cafe_id}, start={start}, end={end}',
         )
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=detail,
         )
@@ -96,7 +98,7 @@ async def create_time_slot(
     if not cafe:
         detail = f'Кафе с ID {cafe_id} не найдено'
         logger.warning(detail)
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=detail,
         )
@@ -109,7 +111,7 @@ async def create_time_slot(
         logger.warning(
             f'{detail}: cafe_id={cafe_id}, start={start}, end={end}',
         )
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=detail,
         )
@@ -135,7 +137,7 @@ async def create_time_slot(
     except SQLAlchemyError as e:
         await db.rollback()
         logger.error(f'Ошибка при сохранении слота в БД: {e}')
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail='Ошибка при сохранении слота',
         )
@@ -204,7 +206,7 @@ async def update_time_slot(
         logger.warning(
             f'{detail}: slot_id={slot.id}, start={new_start}, end={new_end}',
         )
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=detail,
         )
@@ -245,7 +247,7 @@ async def update_time_slot(
     except SQLAlchemyError as e:
         await db.rollback()
         logger.error(f'Ошибка при обновлении слота в БД: {e}')
-        raise HTTPException(
+        raise AppException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail='Ошибка при обновлении слота',
         )
