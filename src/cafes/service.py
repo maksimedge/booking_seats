@@ -23,21 +23,17 @@ async def create_cafe(
 ) -> Cafe:
     """Создание нового кафе."""
     result = await db.execute(
-        select(Cafe).where(
-            Cafe.name == cafe_data.name,
-            Cafe.address == cafe_data.address,
-        ),
+        select(Cafe).where(Cafe.name == cafe_data.name),
     )
     existing: Optional[Cafe] = result.scalar_one_or_none()
 
     if existing:
         logger.warning(
-            f'Попытка создать кафе с существующими данными: '
-            f'name={cafe_data.name}, address={cafe_data.address}',
+            f'Попытка создать кафе с существующим названием: name={cafe_data.name}',
         )
         raise AppException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Кафе с таким названием и адресом уже существует',
+            detail='Кафе с таким названием уже существует',
         )
 
     result_managers: Result = await db.execute(
@@ -125,14 +121,10 @@ async def update_cafe(
     update_data: CafeUpdate,
 ) -> Cafe:
     """Обновление данных кафе."""
-    if update_data.name is not None or update_data.address is not None:
-        new_name = update_data.name or cafe.name
-        new_address = update_data.address or cafe.address
-
+    if update_data.name is not None:
         result = await db.execute(
             select(Cafe).where(
-                Cafe.name == new_name,
-                Cafe.address == new_address,
+                Cafe.name == update_data.name,
                 Cafe.id != cafe.id,
             ),
         )
@@ -141,7 +133,7 @@ async def update_cafe(
         if existing:
             raise AppException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail='Кафе с таким названием и адресом уже существует',
+                detail='Кафе с таким названием уже существует',
             )
 
     if update_data.managers_id is not None:
