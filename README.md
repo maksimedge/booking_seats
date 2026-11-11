@@ -1,29 +1,30 @@
-# Проект «Бронирование мест в кафе»
+# Café Table Booking Project
 
-Backend-приложение для бронирования столов в кафе.
-Сервис предоставляет REST API для управления пользователями, кафе, столами, временными слотами и бронированиями, поддерживает разграничение прав доступа, загрузку изображений и отправку фоновых уведомлений.
+A backend application for booking tables at cafés.
 
-Проект разработан на FastAPI с использованием асинхронного SQLAlchemy и PostgreSQL.
+The service provides a REST API for managing users, cafés, tables, time slots, and bookings, with role-based access control, image uploads, and background notifications.
 
-## Основные возможности
+The project is built with FastAPI, asynchronous SQLAlchemy, and PostgreSQL.
 
-- регистрация и аутентификация пользователей по JWT;
-- роли пользователей: `ADMIN`, `MANAGER`, `USER`;
-- управление кафе;
-- управление столами и их вместимостью;
-- управление временными слотами;
-- создание, просмотр, изменение и отмена бронирований;
-- проверка доступности столов и временных слотов;
-- контроль вместимости выбранных столов;
-- загрузка и получение изображений;
-- фоновые уведомления менеджеров о создании и изменении бронирований;
-- напоминания пользователям о предстоящих бронированиях;
-- централизованное логирование;
-- единый формат API-ошибок;
-- демонстрационное наполнение базы данных;
-- контейнеризация и CI/CD.
+## Key Features
 
-## Технологический стек
+- User registration and JWT authentication;
+- User roles: `ADMIN`, `MANAGER`, `USER`;
+- Café management;
+- Table and seating capacity management;
+- Time slot management;
+- Creating, viewing, updating, and cancelling bookings;
+- Table and time slot availability checks;
+- Capacity checks for selected tables;
+- Image uploads and retrieval;
+- Background notifications to managers when bookings are created or updated;
+- Reminders to users about upcoming bookings;
+- Centralized logging;
+- A consistent API error format;
+- Demo database seeding;
+- Containerization and CI/CD.
+
+## Technology Stack
 
 ### Backend
 
@@ -37,29 +38,29 @@ Backend-приложение для бронирования столов в к�
 - Alembic
 - PostgreSQL 17
 
-### Аутентификация и безопасность
+### Authentication and Security
 
 - JWT
 - python-jose
 - pwdlib
 - Argon2
 
-### Фоновые задачи и уведомления
+### Background Tasks and Notifications
 
 - Celery
 - RabbitMQ
 - Celery Beat
 - Flower
 - SMTP
-- Mailpit для локального тестирования email-уведомлений
+- Mailpit for local testing of email notifications
 
-### Работа с файлами
+### File Handling
 
 - Pillow
 - aiofiles
 - python-multipart
 
-### Инфраструктура и качество кода
+### Infrastructure and Code Quality
 
 - Docker
 - Docker Compose
@@ -71,17 +72,17 @@ Backend-приложение для бронирования столов в к�
 - Pre-commit
 - Loguru
 
-## Архитектура проекта
+## Project Architecture
 
-Проект разделён по функциональным модулям. Каждый основной модуль содержит собственные модели, схемы, роутеры и бизнес-логику.
+The project is organized into functional modules. Each main module contains its own models, schemas, routers, and business logic.
 
 ```text
 src/
-├── api/                 # Главный API router
-├── auth/                # Аутентификация и JWT
-├── bookings/            # Бронирования
-├── cafes/               # Кафе
-├── core/                # Общие настройки и инфраструктура
+├── api/                 # Main API router
+├── auth/                # Authentication and JWT
+├── bookings/            # Bookings
+├── cafes/               # Cafés
+├── core/                # Shared settings and infrastructure
 │   ├── celery_app.py
 │   ├── celery_db.py
 │   ├── db.py
@@ -91,23 +92,23 @@ src/
 │   ├── middleware.py
 │   ├── security.py
 │   └── settings.py
-├── media/               # Загрузка и получение изображений
-├── migrations/          # Миграции Alembic
-├── notifications/       # Email-уведомления и Celery tasks
-├── scripts/             # Seed-скрипты
-├── tables/              # Столы
-├── time_slots/          # Временные слоты
-├── users/               # Пользователи
+├── media/               # Image uploads and retrieval
+├── migrations/          # Alembic migrations
+├── notifications/       # Email notifications and Celery tasks
+├── scripts/             # Seed scripts
+├── tables/              # Tables
+├── time_slots/          # Time slots
+├── users/               # Users
 ├── alembic.ini
 └── main.py
 ```
 
-В корне проекта также находятся:
+The project root also contains:
 
 ```text
-.devcontainer/           # Окружение разработки VS Code Dev Containers
+.devcontainer/           # VS Code Dev Containers development environment
 .github/workflows/       # GitHub Actions
-infra/                   # Docker Compose и Nginx для запуска/деплоя
+infra/                   # Docker Compose and Nginx for running/deploying the app
 Dockerfile
 entrypoint.sh
 pyproject.toml
@@ -117,7 +118,7 @@ uv.lock
 
 ## API
 
-После локального запуска приложение доступно по адресу:
+After starting the application locally, it is available at:
 
 ```text
 http://localhost:8000
@@ -135,13 +136,13 @@ OpenAPI schema:
 http://localhost:8000/openapi.json
 ```
 
-Healthcheck:
+Health check:
 
 ```http
 GET /health
 ```
 
-Пример ответа:
+Example response:
 
 ```json
 {
@@ -149,132 +150,132 @@ GET /health
 }
 ```
 
-## Основные модули API
+## Main API Modules
 
-### Пользователи и аутентификация
+### Users and Authentication
 
-Поддерживаются:
+Supported features:
 
-- вход пользователя и выдача JWT-токена;
-- проверка срока действия токена;
-- получение и изменение пользовательских данных;
-- разграничение доступа по ролям.
+- User login and JWT issuance;
+- Token expiration checks;
+- Retrieving and updating user data;
+- Role-based access control.
 
-### Кафе
+### Cafés
 
-Поддерживаются:
+Supported features:
 
-- создание кафе;
-- получение списка кафе;
-- получение кафе по идентификатору;
-- изменение данных кафе;
-- фильтрация по активности;
-- назначение менеджеров;
-- привязка изображения.
+- Creating cafés;
+- Listing cafés;
+- Retrieving a café by ID;
+- Updating café details;
+- Filtering by active status;
+- Assigning managers;
+- Linking an image.
 
-### Столы
+### Tables
 
-Поддерживаются:
+Supported features:
 
-- создание стола в кафе;
-- получение списка столов;
-- получение отдельного стола;
-- изменение количества мест, описания и активности;
-- фильтрация по активности;
-- проверка принадлежности стола кафе.
+- Creating a table at a café;
+- Listing tables;
+- Retrieving an individual table;
+- Updating seating capacity, description, and active status;
+- Filtering by active status;
+- Checking that a table belongs to the café.
 
-### Временные слоты
+### Time Slots
 
-Поддерживаются:
+Supported features:
 
-- создание временного слота;
-- получение списка слотов;
-- получение слота по идентификатору;
-- изменение слота;
-- проверка корректности времени;
-- защита от пересекающихся и дублирующихся слотов.
+- Creating time slots;
+- Listing time slots;
+- Retrieving a time slot by ID;
+- Updating time slots;
+- Validating times;
+- Preventing overlapping and duplicate time slots.
 
-### Бронирования
+### Bookings
 
-Поддерживаются:
+Supported features:
 
-- создание бронирования;
-- получение списка бронирований;
-- получение бронирования по идентификатору;
-- изменение бронирования;
-- отмена бронирования;
-- бронирование нескольких столов и временных слотов;
-- проверка доступности стола на выбранные дату и слот;
-- проверка количества гостей и общей вместимости столов;
-- ограничение изменения прошедших и завершённых бронирований.
+- Creating bookings;
+- Listing bookings;
+- Retrieving a booking by ID;
+- Updating bookings;
+- Cancelling bookings;
+- Booking multiple tables and time slots;
+- Checking table availability for the selected date and time slot;
+- Checking the number of guests against the total seating capacity;
+- Restricting changes to past and completed bookings.
 
 ### Media API
 
-Поддерживаются:
+Supported features:
 
-- загрузка изображений;
-- проверка типа и размера файла;
-- преобразование изображений в JPG;
-- сохранение изображения с UUID-идентификатором;
-- получение сохранённого изображения по идентификатору.
+- Uploading images;
+- Validating file type and size;
+- Converting images to JPG;
+- Saving images with UUID identifiers;
+- Retrieving saved images by ID.
 
-## Роли и права доступа
+## Roles and Permissions
 
-В приложении используются три роли:
+The application uses three roles:
 
-| Роль | Возможности |
+| Role | Permissions |
 |---|---|
-| `USER` | Работа со своими бронированиями и просмотр доступных данных |
-| `MANAGER` | Управление доступными объектами кафе и бронированиями |
-| `ADMIN` | Расширенный административный доступ |
+| `USER` | Manage their own bookings and view available data |
+| `MANAGER` | Manage café resources and bookings they have access to |
+| `ADMIN` | Extended administrative access |
 
-Дополнительные проверки прав выполняются на уровне API dependencies и бизнес-логики модулей.
+Additional permission checks are performed through API dependencies and module business logic.
 
-## Бизнес-логика бронирований
+## Booking Business Logic
 
-При создании и изменении бронирования выполняются проверки:
+The following checks are performed when creating or updating a booking:
 
-- кафе существует и активно;
-- дата бронирования не находится в прошлом;
-- количество гостей не меньше 1;
-- выбранные столы и временные слоты существуют;
-- пара «стол + слот» не дублируется;
-- стол не занят другим бронированием на эту же дату и временной слот;
-- суммарная вместимость столов достаточна для количества гостей;
-- прошедшие бронирования нельзя изменять или отменять;
-- завершённые или отменённые бронирования нельзя повторно изменять или отменять.
+- The café exists and is active;
+- The booking date is not in the past;
+- The number of guests is at least 1;
+- The selected tables and time slots exist;
+- No table–time slot pair is duplicated;
+- The table is not reserved by another booking for the same date and time slot;
+- The total seating capacity is sufficient for the number of guests;
+- Past bookings cannot be updated or cancelled;
+- Completed or cancelled bookings cannot be updated or cancelled again.
 
-## Уведомления и фоновые задачи
+## Notifications and Background Tasks
 
-Для фоновой обработки используются Celery и RabbitMQ.
+Celery and RabbitMQ are used for background processing.
 
-Реализованы:
+Implemented features:
 
-- уведомления менеджеров при создании бронирования;
-- уведомления менеджеров при изменении бронирования;
-- периодическая проверка предстоящих бронирований;
-- email-напоминания пользователям;
-- защита от повторной отправки напоминаний;
-- retry при временных SMTP-ошибках.
+- Manager notifications when a booking is created;
+- Manager notifications when a booking is updated;
+- Periodic checks for upcoming bookings;
+- Email reminders to users;
+- Duplicate reminder prevention;
+- Retries for temporary SMTP errors.
 
-Celery Beat периодически ставит задачу проверки бронирований в очередь.
-Celery Worker получает задачу из RabbitMQ и выполняет бизнес-логику уведомлений.
+Celery Beat periodically queues a task to check bookings.
+Celery Worker retrieves the task from RabbitMQ and executes the notification business logic.
 
-### Запуск Celery Worker
+### Starting Celery Worker
 
-Из директории `src`:
+From the `src` directory:
 
 ```bash
 celery -A core.celery_app:booking_celery worker --loglevel=info
 ```
 
-### Запуск Celery Beat
+### Starting Celery Beat
 
 ```bash
 celery -A core.celery_app:booking_celery beat --loglevel=info
 ```
 
-### Запуск Flower
+### Starting Flower
 
 ```bash
 celery -A core.celery_app:booking_celery flower --port=5555
@@ -288,7 +289,7 @@ http://localhost:5555
 
 ## RabbitMQ
 
-В DevContainer используется образ:
+The DevContainer uses the following image:
 
 ```text
 rabbitmq:3-management
@@ -300,7 +301,7 @@ RabbitMQ Management UI:
 http://localhost:15672
 ```
 
-По умолчанию для локальной разработки используются значения:
+The default values for local development are:
 
 ```text
 RABBITMQ_USER=booking
@@ -309,73 +310,73 @@ RABBITMQ_HOST=rabbitmq
 RABBITMQ_PORT=5672
 ```
 
-## Email и Mailpit
+## Email and Mailpit
 
-Для локального тестирования email используется Mailpit.
+Mailpit is used for local email testing.
 
-SMTP внутри Docker-сети:
+SMTP within the Docker network:
 
 ```text
 mailpit:1025
 ```
 
-Web UI Mailpit:
+Mailpit Web UI:
 
 ```text
 http://localhost:8025
 ```
 
-Письма не отправляются во внешний почтовый сервис при локальной разработке — их можно посмотреть через интерфейс Mailpit.
+During local development, emails are not sent to an external email service. They can be viewed in the Mailpit interface.
 
-## Логирование
+## Logging
 
-В проекте используется централизованное логирование на основе Loguru.
+The project uses centralized logging based on Loguru.
 
-Логируются:
+The following are logged:
 
-- запуск и остановка приложения;
-- HTTP-запросы и ответы;
-- ошибки;
-- операции аутентификации;
-- бизнес-действия;
-- создание и изменение сущностей;
-- операции с бронированиями;
-- отправка уведомлений.
+- Application startup and shutdown;
+- HTTP requests and responses;
+- Errors;
+- Authentication operations;
+- Business actions;
+- Entity creation and updates;
+- Booking operations;
+- Notification delivery.
 
-В пользовательский контекст логов могут включаться идентификатор и имя пользователя.
+The logging context may include the user's ID and username.
 
-Логи приложения сохраняются в:
+Application logs are saved to:
 
 ```text
 src/logs/app.log
 ```
 
-## Формат ошибок
+## Error Format
 
-В приложении используется единый механизм обработки ошибок.
+The application uses a unified error-handling mechanism.
 
-Ошибки бизнес-логики возвращаются в формате:
+Business logic errors are returned in the following format:
 
 ```json
 {
   "code": 400,
-  "message": "Описание ошибки"
+  "message": "Error description"
 }
 ```
 
-Для этого используются собственный класс исключения приложения и централизованные FastAPI exception handlers.
+This is implemented using a custom application exception class and centralized FastAPI exception handlers.
 
-Отдельный обработчик используется для ошибок валидации входных данных.
+A separate handler is used for input validation errors.
 
-## Переменные окружения
+## Environment Variables
 
-Создайте файл:
+Create the following file:
 
 ```text
 infra/.env
 ```
 
-Пример:
+Example:
 
 ```env
 # PostgreSQL
@@ -401,128 +402,119 @@ REMINDER_BEFORE_PERIOD_HOURS=1
 EMAIL_FROM_ADDRESS=booking@cafe.local
 ```
 
-> Не используйте реальные секреты и production-пароли в репозитории. Файл `.env` должен быть исключён из Git.
+> Do not commit real secrets or production passwords to the repository. The `.env` file must be excluded from Git.
 
-## Запуск для разработки
+## Development Setup
 
-### Требования
+### Requirements
 
-Необходимо установить:
+Install the following:
 
-- Docker Desktop или Docker Engine;
+- Docker Desktop or Docker Engine;
 - Visual Studio Code;
-- расширение Dev Containers.
+- The Dev Containers extension.
 
-### Запуск DevContainer
+### Starting the DevContainer
 
-1. Клонируйте репозиторий.
-2. Создайте `infra/.env`.
-3. Откройте проект в VS Code.
-4. Нажмите:
+1. Clone the repository.
+2. Create `infra/.env`.
+3. Open the project in VS Code.
+4. Press `Ctrl + Shift + P`.
+5. Select `Dev Containers: Reopen in Container`.
 
-```text
-Ctrl + Shift + P
-```
+This starts:
 
-5. Выберите:
-
-```text
-Dev Containers: Reopen in Container
-```
-
-В результате будут запущены:
-
-- контейнер приложения;
+- The application container;
 - PostgreSQL;
 - RabbitMQ;
 - Mailpit.
 
-Исходный код проекта монтируется в:
+The project source code is mounted at:
 
 ```text
 /workspace
 ```
 
-## Запуск FastAPI
+## Starting FastAPI
 
-После открытия DevContainer:
+After opening the DevContainer:
 
 ```bash
 cd src
 python main.py
 ```
 
-Приложение запустится на:
+The application starts at:
 
 ```text
 http://localhost:8000
 ```
 
-Также приложение можно запускать через конфигурацию VS Code `Run and Debug`.
+You can also start the application using the VS Code `Run and Debug` configuration.
 
-## Миграции Alembic
+## Alembic Migrations
 
-Команды выполняются из директории `src`.
+Run these commands from the `src` directory.
 
-### Применить существующие миграции
+### Apply Existing Migrations
 
 ```bash
 alembic upgrade head
 ```
 
-### Создать новую миграцию
+### Create a New Migration
 
 ```bash
 alembic revision --autogenerate -m "migration description"
 ```
 
-### Откатить последнюю миграцию
+### Roll Back the Latest Migration
 
 ```bash
 alembic downgrade -1
 ```
 
-## Демонстрационные данные
+## Demo Data
 
-Для наполнения базы подготовлен seed-скрипт.
+A seed script is provided to populate the database.
 
-Из директории `src` выполните:
+Run the following from the `src` directory:
 
 ```bash
 PYTHONPATH=/workspace/src python scripts/seed_demo.py
 ```
 
-При успешном выполнении:
+On successful completion:
 
 ```text
-Демонстрационные данные успешно загружены.
+Demo data loaded successfully.
 ```
 
-Seed-скрипт можно запускать повторно. Перед созданием новых демонстрационных данных существующие demo-данные очищаются.
+The seed script can be run multiple times. Existing demo data is cleared before new demo data is created.
 
-### Демонстрационные аккаунты
+### Demo Accounts
 
-Пароль для демонстрационных пользователей:
+Password for demo users:
 
 ```text
 Demo123!
 ```
 
-| Email | Роль | Статус |
+| Email | Role | Status |
 |---|---|---|
-| admin@example.com | ADMIN | Активен |
-| manager1@example.com | MANAGER | Активен |
-| manager2@example.com | MANAGER | Активен |
-| user1@example.com | USER | Активен |
-| user2@example.com | USER | Активен |
-| user3@example.com | USER | Активен |
-| user4@example.com | USER | Активен |
-| user5@example.com | USER | Активен |
-| blocked@example.com | USER | Неактивен |
+| admin@example.com | ADMIN | Active |
+| manager1@example.com | MANAGER | Active |
+| manager2@example.com | MANAGER | Active |
+| user1@example.com | USER | Active |
+| user2@example.com | USER | Active |
+| user3@example.com | USER | Active |
+| user4@example.com | USER | Active |
+| user5@example.com | USER | Active |
+| blocked@example.com | USER | Inactive |
 
-Для авторизации используется email пользователя.
+The user's email address is used to log in.
 
-Пример данных:
+Example credentials:
 
 ```json
 {
@@ -531,41 +523,35 @@ Demo123!
 }
 ```
 
-## Управление зависимостями
+## Dependency Management
 
-В качестве менеджера зависимостей используется `uv`.
+The project uses `uv` as its dependency manager.
 
-Установить зависимости:
+Install dependencies:
 
 ```bash
 uv sync
 ```
 
-Файл:
+The `uv.lock` file locks exact dependency versions and must be committed to Git.
 
-```text
-uv.lock
-```
+## Ruff and Pre-commit
 
-фиксирует точные версии зависимостей и должен храниться в Git.
+Ruff is used to check code quality and style.
 
-## Ruff и Pre-commit
-
-Для проверки качества и стиля кода используется Ruff.
-
-Проверка проекта:
+Check the project:
 
 ```bash
 ruff check .
 ```
 
-Автоматическое исправление доступных ошибок:
+Automatically fix issues where possible:
 
 ```bash
 ruff check . --fix
 ```
 
-Для запуска pre-commit hooks:
+Run pre-commit hooks:
 
 ```bash
 pre-commit run --all-files
@@ -573,38 +559,38 @@ pre-commit run --all-files
 
 ## Docker
 
-Для локальной разработки используется:
+Local development uses:
 
 ```text
 .devcontainer/docker-compose.yml
 ```
 
-В нём запускаются:
+It starts the following services:
 
 - `app`;
 - `db`;
 - `rabbitmq`;
 - `mailpit`.
 
-Для production-подобного окружения используется:
+A production-like environment uses:
 
 ```text
 infra/docker-compose.production.yml
 ```
 
-В предоставленной конфигурации присутствуют:
+The provided configuration includes:
 
-- приложение;
+- The application;
 - PostgreSQL;
 - Nginx.
 
-> Если в production требуется работа фоновых уведомлений, также должны быть запущены RabbitMQ, Celery Worker и Celery Beat либо как дополнительные Docker-сервисы, либо как отдельные процессы/сервисы инфраструктуры.
+> If background notifications are required in production, RabbitMQ, Celery Worker, and Celery Beat must also be running, either as additional Docker services or as separate infrastructure processes/services.
 
 ## CI/CD
 
-В проекте используются GitHub Actions.
+The project uses GitHub Actions.
 
-Workflow-файлы находятся в:
+Workflow files are located in:
 
 ```text
 .github/workflows/
@@ -612,35 +598,35 @@ Workflow-файлы находятся в:
 └── style_check.yml
 ```
 
-CI/CD используется для автоматизации проверки проекта, сборки Docker-образа и процесса деплоя.
+CI/CD automates project checks, Docker image builds, and deployment.
 
-Production-конфигурация приложения находится в директории:
+The application's production configuration is located in:
 
 ```text
 infra/
 ```
 
-В неё входят Docker Compose и конфигурация Nginx.
+It includes Docker Compose and the Nginx configuration.
 
-## Тестирование
+## Testing
 
-Автоматические тесты в текущей версии проекта не реализованы.
+Automated tests have not been implemented in the current version of the project.
 
-Функциональность API проверяется вручную через Swagger/OpenAPI:
+API functionality is tested manually through Swagger/OpenAPI:
 
 ```text
 http://localhost:8000/docs
 ```
 
-Дополнительно для проверки инфраструктуры можно использовать:
+The following can also be used to check the infrastructure:
 
 - RabbitMQ Management UI;
 - Flower;
 - Mailpit;
-- healthcheck endpoint приложения.
+- The application's health check endpoint.
 
-## Текущий статус
+## Current Status
 
-Проект предназначен для учебной командной разработки.
+The project is intended for educational team development.
 
-Публичный production-инстанс в данный момент не поддерживается, поэтому для работы с API необходимо запустить проект локально.
+A public production instance is not currently maintained. To use the API, run the project locally.
